@@ -9,50 +9,114 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as ShopRouteImport } from './routes/_shop'
+import { Route as ShopIndexRouteImport } from './routes/_shop/index'
+import { Route as ShopProductsIndexRouteImport } from './routes/_shop/products/index'
+import { Route as ShopProductsSlugRouteImport } from './routes/_shop/products/$slug'
 
-const IndexRoute = IndexRouteImport.update({
+const ShopRoute = ShopRouteImport.update({
+  id: '/_shop',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ShopIndexRoute = ShopIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => ShopRoute,
+} as any)
+const ShopProductsIndexRoute = ShopProductsIndexRouteImport.update({
+  id: '/products/',
+  path: '/products/',
+  getParentRoute: () => ShopRoute,
+} as any)
+const ShopProductsSlugRoute = ShopProductsSlugRouteImport.update({
+  id: '/products/$slug',
+  path: '/products/$slug',
+  getParentRoute: () => ShopRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/': typeof ShopIndexRoute
+  '/products/$slug': typeof ShopProductsSlugRoute
+  '/products/': typeof ShopProductsIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
+  '/': typeof ShopIndexRoute
+  '/products/$slug': typeof ShopProductsSlugRoute
+  '/products': typeof ShopProductsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
+  '/_shop': typeof ShopRouteWithChildren
+  '/_shop/': typeof ShopIndexRoute
+  '/_shop/products/$slug': typeof ShopProductsSlugRoute
+  '/_shop/products/': typeof ShopProductsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/products/$slug' | '/products/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/products/$slug' | '/products'
+  id:
+    | '__root__'
+    | '/_shop'
+    | '/_shop/'
+    | '/_shop/products/$slug'
+    | '/_shop/products/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  ShopRoute: typeof ShopRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
+    '/_shop': {
+      id: '/_shop'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof ShopRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_shop/': {
+      id: '/_shop/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof ShopIndexRouteImport
+      parentRoute: typeof ShopRoute
+    }
+    '/_shop/products/': {
+      id: '/_shop/products/'
+      path: '/products'
+      fullPath: '/products/'
+      preLoaderRoute: typeof ShopProductsIndexRouteImport
+      parentRoute: typeof ShopRoute
+    }
+    '/_shop/products/$slug': {
+      id: '/_shop/products/$slug'
+      path: '/products/$slug'
+      fullPath: '/products/$slug'
+      preLoaderRoute: typeof ShopProductsSlugRouteImport
+      parentRoute: typeof ShopRoute
     }
   }
 }
 
+interface ShopRouteChildren {
+  ShopIndexRoute: typeof ShopIndexRoute
+  ShopProductsSlugRoute: typeof ShopProductsSlugRoute
+  ShopProductsIndexRoute: typeof ShopProductsIndexRoute
+}
+
+const ShopRouteChildren: ShopRouteChildren = {
+  ShopIndexRoute: ShopIndexRoute,
+  ShopProductsSlugRoute: ShopProductsSlugRoute,
+  ShopProductsIndexRoute: ShopProductsIndexRoute,
+}
+
+const ShopRouteWithChildren = ShopRoute._addFileChildren(ShopRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  ShopRoute: ShopRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
