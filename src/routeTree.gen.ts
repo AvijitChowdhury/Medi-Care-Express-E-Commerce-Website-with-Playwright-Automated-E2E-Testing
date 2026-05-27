@@ -11,8 +11,18 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ShopRouteImport } from './routes/_shop'
 import { Route as ShopIndexRouteImport } from './routes/_shop/index'
+import { Route as ShopTrackRouteImport } from './routes/_shop/track'
+import { Route as ShopLoginRouteImport } from './routes/_shop/login'
+import { Route as ShopContactRouteImport } from './routes/_shop/contact'
+import { Route as ShopCheckoutRouteImport } from './routes/_shop/checkout'
+import { Route as ShopCartRouteImport } from './routes/_shop/cart'
+import { Route as ShopAccountRouteImport } from './routes/_shop/account'
+import { Route as ShopAboutRouteImport } from './routes/_shop/about'
 import { Route as ShopProductsIndexRouteImport } from './routes/_shop/products/index'
 import { Route as ShopProductsSlugRouteImport } from './routes/_shop/products/$slug'
+import { Route as ShopPolicyRefundRouteImport } from './routes/_shop/policy/refund'
+import { Route as ShopPolicyPrivacyRouteImport } from './routes/_shop/policy/privacy'
+import { Route as ShopOrderIdRouteImport } from './routes/_shop/order/$id'
 
 const ShopRoute = ShopRouteImport.update({
   id: '/_shop',
@@ -21,6 +31,41 @@ const ShopRoute = ShopRouteImport.update({
 const ShopIndexRoute = ShopIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => ShopRoute,
+} as any)
+const ShopTrackRoute = ShopTrackRouteImport.update({
+  id: '/track',
+  path: '/track',
+  getParentRoute: () => ShopRoute,
+} as any)
+const ShopLoginRoute = ShopLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => ShopRoute,
+} as any)
+const ShopContactRoute = ShopContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => ShopRoute,
+} as any)
+const ShopCheckoutRoute = ShopCheckoutRouteImport.update({
+  id: '/checkout',
+  path: '/checkout',
+  getParentRoute: () => ShopRoute,
+} as any)
+const ShopCartRoute = ShopCartRouteImport.update({
+  id: '/cart',
+  path: '/cart',
+  getParentRoute: () => ShopRoute,
+} as any)
+const ShopAccountRoute = ShopAccountRouteImport.update({
+  id: '/account',
+  path: '/account',
+  getParentRoute: () => ShopRoute,
+} as any)
+const ShopAboutRoute = ShopAboutRouteImport.update({
+  id: '/about',
+  path: '/about',
   getParentRoute: () => ShopRoute,
 } as any)
 const ShopProductsIndexRoute = ShopProductsIndexRouteImport.update({
@@ -33,33 +78,114 @@ const ShopProductsSlugRoute = ShopProductsSlugRouteImport.update({
   path: '/products/$slug',
   getParentRoute: () => ShopRoute,
 } as any)
+const ShopPolicyRefundRoute = ShopPolicyRefundRouteImport.update({
+  id: '/policy/refund',
+  path: '/policy/refund',
+  getParentRoute: () => ShopRoute,
+} as any)
+const ShopPolicyPrivacyRoute = ShopPolicyPrivacyRouteImport.update({
+  id: '/policy/privacy',
+  path: '/policy/privacy',
+  getParentRoute: () => ShopRoute,
+} as any)
+const ShopOrderIdRoute = ShopOrderIdRouteImport.update({
+  id: '/order/$id',
+  path: '/order/$id',
+  getParentRoute: () => ShopRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof ShopIndexRoute
+  '/about': typeof ShopAboutRoute
+  '/account': typeof ShopAccountRoute
+  '/cart': typeof ShopCartRoute
+  '/checkout': typeof ShopCheckoutRoute
+  '/contact': typeof ShopContactRoute
+  '/login': typeof ShopLoginRoute
+  '/track': typeof ShopTrackRoute
+  '/order/$id': typeof ShopOrderIdRoute
+  '/policy/privacy': typeof ShopPolicyPrivacyRoute
+  '/policy/refund': typeof ShopPolicyRefundRoute
   '/products/$slug': typeof ShopProductsSlugRoute
   '/products/': typeof ShopProductsIndexRoute
 }
 export interface FileRoutesByTo {
+  '/about': typeof ShopAboutRoute
+  '/account': typeof ShopAccountRoute
+  '/cart': typeof ShopCartRoute
+  '/checkout': typeof ShopCheckoutRoute
+  '/contact': typeof ShopContactRoute
+  '/login': typeof ShopLoginRoute
+  '/track': typeof ShopTrackRoute
   '/': typeof ShopIndexRoute
+  '/order/$id': typeof ShopOrderIdRoute
+  '/policy/privacy': typeof ShopPolicyPrivacyRoute
+  '/policy/refund': typeof ShopPolicyRefundRoute
   '/products/$slug': typeof ShopProductsSlugRoute
   '/products': typeof ShopProductsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_shop': typeof ShopRouteWithChildren
+  '/_shop/about': typeof ShopAboutRoute
+  '/_shop/account': typeof ShopAccountRoute
+  '/_shop/cart': typeof ShopCartRoute
+  '/_shop/checkout': typeof ShopCheckoutRoute
+  '/_shop/contact': typeof ShopContactRoute
+  '/_shop/login': typeof ShopLoginRoute
+  '/_shop/track': typeof ShopTrackRoute
   '/_shop/': typeof ShopIndexRoute
+  '/_shop/order/$id': typeof ShopOrderIdRoute
+  '/_shop/policy/privacy': typeof ShopPolicyPrivacyRoute
+  '/_shop/policy/refund': typeof ShopPolicyRefundRoute
   '/_shop/products/$slug': typeof ShopProductsSlugRoute
   '/_shop/products/': typeof ShopProductsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/products/$slug' | '/products/'
+  fullPaths:
+    | '/'
+    | '/about'
+    | '/account'
+    | '/cart'
+    | '/checkout'
+    | '/contact'
+    | '/login'
+    | '/track'
+    | '/order/$id'
+    | '/policy/privacy'
+    | '/policy/refund'
+    | '/products/$slug'
+    | '/products/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/products/$slug' | '/products'
+  to:
+    | '/about'
+    | '/account'
+    | '/cart'
+    | '/checkout'
+    | '/contact'
+    | '/login'
+    | '/track'
+    | '/'
+    | '/order/$id'
+    | '/policy/privacy'
+    | '/policy/refund'
+    | '/products/$slug'
+    | '/products'
   id:
     | '__root__'
     | '/_shop'
+    | '/_shop/about'
+    | '/_shop/account'
+    | '/_shop/cart'
+    | '/_shop/checkout'
+    | '/_shop/contact'
+    | '/_shop/login'
+    | '/_shop/track'
     | '/_shop/'
+    | '/_shop/order/$id'
+    | '/_shop/policy/privacy'
+    | '/_shop/policy/refund'
     | '/_shop/products/$slug'
     | '/_shop/products/'
   fileRoutesById: FileRoutesById
@@ -84,6 +210,55 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShopIndexRouteImport
       parentRoute: typeof ShopRoute
     }
+    '/_shop/track': {
+      id: '/_shop/track'
+      path: '/track'
+      fullPath: '/track'
+      preLoaderRoute: typeof ShopTrackRouteImport
+      parentRoute: typeof ShopRoute
+    }
+    '/_shop/login': {
+      id: '/_shop/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof ShopLoginRouteImport
+      parentRoute: typeof ShopRoute
+    }
+    '/_shop/contact': {
+      id: '/_shop/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ShopContactRouteImport
+      parentRoute: typeof ShopRoute
+    }
+    '/_shop/checkout': {
+      id: '/_shop/checkout'
+      path: '/checkout'
+      fullPath: '/checkout'
+      preLoaderRoute: typeof ShopCheckoutRouteImport
+      parentRoute: typeof ShopRoute
+    }
+    '/_shop/cart': {
+      id: '/_shop/cart'
+      path: '/cart'
+      fullPath: '/cart'
+      preLoaderRoute: typeof ShopCartRouteImport
+      parentRoute: typeof ShopRoute
+    }
+    '/_shop/account': {
+      id: '/_shop/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof ShopAccountRouteImport
+      parentRoute: typeof ShopRoute
+    }
+    '/_shop/about': {
+      id: '/_shop/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof ShopAboutRouteImport
+      parentRoute: typeof ShopRoute
+    }
     '/_shop/products/': {
       id: '/_shop/products/'
       path: '/products'
@@ -98,17 +273,58 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShopProductsSlugRouteImport
       parentRoute: typeof ShopRoute
     }
+    '/_shop/policy/refund': {
+      id: '/_shop/policy/refund'
+      path: '/policy/refund'
+      fullPath: '/policy/refund'
+      preLoaderRoute: typeof ShopPolicyRefundRouteImport
+      parentRoute: typeof ShopRoute
+    }
+    '/_shop/policy/privacy': {
+      id: '/_shop/policy/privacy'
+      path: '/policy/privacy'
+      fullPath: '/policy/privacy'
+      preLoaderRoute: typeof ShopPolicyPrivacyRouteImport
+      parentRoute: typeof ShopRoute
+    }
+    '/_shop/order/$id': {
+      id: '/_shop/order/$id'
+      path: '/order/$id'
+      fullPath: '/order/$id'
+      preLoaderRoute: typeof ShopOrderIdRouteImport
+      parentRoute: typeof ShopRoute
+    }
   }
 }
 
 interface ShopRouteChildren {
+  ShopAboutRoute: typeof ShopAboutRoute
+  ShopAccountRoute: typeof ShopAccountRoute
+  ShopCartRoute: typeof ShopCartRoute
+  ShopCheckoutRoute: typeof ShopCheckoutRoute
+  ShopContactRoute: typeof ShopContactRoute
+  ShopLoginRoute: typeof ShopLoginRoute
+  ShopTrackRoute: typeof ShopTrackRoute
   ShopIndexRoute: typeof ShopIndexRoute
+  ShopOrderIdRoute: typeof ShopOrderIdRoute
+  ShopPolicyPrivacyRoute: typeof ShopPolicyPrivacyRoute
+  ShopPolicyRefundRoute: typeof ShopPolicyRefundRoute
   ShopProductsSlugRoute: typeof ShopProductsSlugRoute
   ShopProductsIndexRoute: typeof ShopProductsIndexRoute
 }
 
 const ShopRouteChildren: ShopRouteChildren = {
+  ShopAboutRoute: ShopAboutRoute,
+  ShopAccountRoute: ShopAccountRoute,
+  ShopCartRoute: ShopCartRoute,
+  ShopCheckoutRoute: ShopCheckoutRoute,
+  ShopContactRoute: ShopContactRoute,
+  ShopLoginRoute: ShopLoginRoute,
+  ShopTrackRoute: ShopTrackRoute,
   ShopIndexRoute: ShopIndexRoute,
+  ShopOrderIdRoute: ShopOrderIdRoute,
+  ShopPolicyPrivacyRoute: ShopPolicyPrivacyRoute,
+  ShopPolicyRefundRoute: ShopPolicyRefundRoute,
   ShopProductsSlugRoute: ShopProductsSlugRoute,
   ShopProductsIndexRoute: ShopProductsIndexRoute,
 }
