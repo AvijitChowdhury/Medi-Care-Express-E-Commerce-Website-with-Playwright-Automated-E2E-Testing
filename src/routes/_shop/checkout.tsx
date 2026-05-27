@@ -11,6 +11,7 @@ export const Route = createFileRoute("/_shop/checkout")({
   component: Checkout,
 });
 
+type PaymentMethod = "cod" | "partial_online";
 const DHAKA_SHIPPING = 70;
 const OUTSIDE_SHIPPING = 130;
 
@@ -20,7 +21,7 @@ function Checkout() {
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     name: "", phone: "", email: "", address: "", city: "", area: "dhaka",
-    payment: "cod" as "cod" | "online",
+    payment: "cod" as PaymentMethod,
     notes: "",
   });
 
@@ -42,7 +43,8 @@ function Checkout() {
   const sub = subtotal();
   const shipping = form.area === "dhaka" ? DHAKA_SHIPPING : OUTSIDE_SHIPPING;
   const total = sub + shipping;
-  const advance = form.payment === "online" ? Math.max(Math.round(sub * 0.1), shipping) : 0;
+  const advance = form.payment === "partial_online" ? Math.max(Math.round(sub * 0.1), shipping) : 0;
+  const due = total - advance;
 
   const placeOrder = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,12 +64,14 @@ function Checkout() {
         shipping_city: form.city,
         shipping_area: form.area,
         subtotal: sub,
-        shipping_cost: shipping,
+        delivery_fee: shipping,
         total,
         payment_method: form.payment,
-        payment_status: form.payment === "online" ? "advance_pending" : "pending",
-        advance_amount: advance,
+        payment_status: form.payment === "partial_online" ? "partial" : "unpaid",
+        paid_amount: 0,
+        due_amount: due,
         status: "pending",
+        is_complete: true,
         notes: form.notes || null,
       }).select().single();
 
@@ -78,9 +82,9 @@ function Checkout() {
           order_id: order.id,
           product_id: it.productId,
           name_bn: it.name_bn,
-          price: it.price,
+          unit_price: it.price,
           qty: it.qty,
-          subtotal: it.price * it.qty,
+          image_url: it.image,
         }))
       );
       if (itemErr) throw itemErr;
@@ -127,8 +131,8 @@ function Checkout() {
           <Card title="পেমেন্ট মাধ্যম">
             <div className="space-y-3">
               {[
-                { v: "cod", l: "ক্যাশ অন ডেলিভারি", d: "পণ্য হাতে পেয়ে পরিশোধ করুন" },
-                { v: "online", l: "অনলাইন (১০% অগ্রিম)", d: `অগ্রিম ${taka(Math.max(Math.round(sub * 0.1), shipping))} • বাকিটা ডেলিভারিতে` },
+                { v: "cod" as const, l: "ক্যাশ অন ডেলিভারি", d: "পণ্য হাতে পেয়ে পরিশোধ করুন" },
+                { v: "partial_online" as const, l: "অনলাইন (১০% অগ্রিম)", d: `অগ্রিম ${taka(Math.max(Math.round(sub * 0.1), shipping))} • বাকিটা ডেলিভারিতে` },
               ].map((o) => (
                 <label key={o.v} className={`flex gap-3 items-start border rounded-md p-4 cursor-pointer ${form.payment === o.v ? "border-primary bg-primary/5" : "border-border"}`}>
                   <input type="radio" name="pay" className="mt-1" checked={form.payment === o.v} onChange={() => setForm({ ...form, payment: o.v as any })} />
@@ -166,7 +170,7 @@ function Checkout() {
           <div className="mt-4 pt-4 border-t border-border space-y-2 text-sm">
             <Row k="সাবটোটাল" v={taka(sub)} />
             <Row k="শিপিং" v={taka(shipping)} />
-            {form.payment === "online" && <Row k="অগ্রিম পেমেন্ট" v={taka(advance)} accent />}
+            {form.payment === "partial_online" && <Row k="অগ্রিম পেমেন্ট" v={taka(advance)} accent />}
           </div>
           <div className="mt-3 pt-3 border-t border-border flex justify-between font-semibold">
             <span>মোট</span><span className="text-primary">{taka(total)}</span>

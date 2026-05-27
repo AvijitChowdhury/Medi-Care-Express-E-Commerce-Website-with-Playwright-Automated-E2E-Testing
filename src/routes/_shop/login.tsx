@@ -75,7 +75,7 @@ function Login() {
   );
 }
 
-function Input({ label, value, onChange, type = "text", required }: any) {
+function Input({ label, value, onChange, type = "text", required }: { label: string; value: string; onChange: (v: string) => void; type?: string; required?: boolean }) {
   return (
     <label className="block">
       <span className="text-xs font-medium block mb-1.5">{label}</span>

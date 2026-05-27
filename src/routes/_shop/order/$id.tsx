@@ -25,7 +25,7 @@ function OrderPage() {
   if (!data?.order) return <div className="container mx-auto px-4 py-20 text-center">অর্ডার পাওয়া যায়নি।</div>;
 
   const o = data.order;
-  const shortId = o.id.slice(0, 8).toUpperCase();
+  const shortId = (o.order_number || o.id.slice(0, 8)).toUpperCase();
 
   const downloadInvoice = () => {
     const doc = new jsPDF();
@@ -39,11 +39,11 @@ function OrderPage() {
     let y = 72;
     doc.text("Items:", 14, y); y += 8;
     data.items.forEach((it: any) => {
-      doc.text(`- ${it.qty} x  Tk ${Math.round(it.price)} = Tk ${Math.round(it.subtotal)}`, 14, y); y += 6;
+      doc.text(`- ${it.qty} x  Tk ${Math.round(it.unit_price)} = Tk ${Math.round(it.unit_price * it.qty)}`, 14, y); y += 6;
     });
     y += 4;
     doc.text(`Subtotal: Tk ${Math.round(o.subtotal)}`, 14, y); y += 6;
-    doc.text(`Shipping: Tk ${Math.round(o.shipping_cost)}`, 14, y); y += 6;
+    doc.text(`Delivery: Tk ${Math.round(o.delivery_fee)}`, 14, y); y += 6;
     doc.setFontSize(12); doc.text(`Total: Tk ${Math.round(o.total)}`, 14, y);
     doc.save(`invoice-${shortId}.pdf`);
   };
@@ -68,13 +68,13 @@ function OrderPage() {
           {data.items.map((it: any) => (
             <div key={it.id} className="py-3 flex justify-between text-sm">
               <span>{it.name_bn} × {toBnDigits(it.qty)}</span>
-              <span>{taka(it.subtotal)}</span>
+              <span>{taka(it.unit_price * it.qty)}</span>
             </div>
           ))}
         </div>
         <div className="mt-4 pt-4 border-t border-border space-y-2 text-sm">
           <div className="flex justify-between"><span className="text-muted-foreground">সাবটোটাল</span><span>{taka(o.subtotal)}</span></div>
-          <div className="flex justify-between"><span className="text-muted-foreground">শিপিং</span><span>{taka(o.shipping_cost)}</span></div>
+          <div className="flex justify-between"><span className="text-muted-foreground">শিপিং</span><span>{taka(o.delivery_fee)}</span></div>
           <div className="flex justify-between font-semibold pt-2 border-t border-border"><span>মোট</span><span className="text-primary">{taka(o.total)}</span></div>
         </div>
       </div>
