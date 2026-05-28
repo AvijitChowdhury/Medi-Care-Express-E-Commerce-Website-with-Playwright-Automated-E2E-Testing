@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { LayoutDashboard, ShoppingBag, Package, Users, Settings, LogOut, Store } from "lucide-react";
 
-export const Route = createFileRoute("/_admin")({
+export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "অ্যাডমিন প্যানেল — মেডিকেয়ার" }] }),
   component: AdminLayout, // reg
 });

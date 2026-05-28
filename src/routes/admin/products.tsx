@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Star, X } from "lucide-react";
 import { img } from "@/lib/images";
 
-export const Route = createFileRoute("/_admin/products")({
+export const Route = createFileRoute("/admin/products")({
   component: Products,
 });
 

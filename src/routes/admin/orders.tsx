@@ -6,7 +6,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
-export const Route = createFileRoute("/_admin/orders")({
+export const Route = createFileRoute("/admin/orders")({
   component: Orders,
 });
 

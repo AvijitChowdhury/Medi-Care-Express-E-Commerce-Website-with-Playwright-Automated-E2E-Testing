@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { taka, toBnDigits } from "@/lib/format";
 
-export const Route = createFileRoute("/_admin/customers")({
+export const Route = createFileRoute("/admin/customers")({
   component: Customers,
 });
 

@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { taka, toBnDigits } from "@/lib/format";
 import { TrendingUp, ShoppingBag, Users, Package, AlertTriangle } from "lucide-react";
 
-export const Route = createFileRoute("/_admin/")({
+export const Route = createFileRoute("/admin/")({
   component: Dashboard,
 });
 
