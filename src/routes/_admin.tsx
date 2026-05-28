@@ -5,7 +5,7 @@ import { LayoutDashboard, ShoppingBag, Package, Users, Settings, LogOut, Store }
 
 export const Route = createFileRoute("/_admin")({
   head: () => ({ meta: [{ title: "অ্যাডমিন প্যানেল — মেডিকেয়ার" }] }),
-  component: AdminLayout,
+  component: AdminLayout, // reg
 });
 
 const nav = [
