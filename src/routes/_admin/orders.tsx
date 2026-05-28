@@ -17,7 +17,7 @@ const STATUS_LABELS: Record<string, string> = {
 
 async function fetchOrders(filter: string, complete: string) {
   let q = supabase.from("orders").select("*, order_items(*)").order("created_at", { ascending: false });
-  if (filter !== "all") q = q.eq("status", filter);
+  if (filter !== "all") q = q.eq("status", filter as any);
   if (complete === "complete") q = q.eq("is_complete", true);
   if (complete === "incomplete") q = q.eq("is_complete", false);
   const { data } = await q;
@@ -32,7 +32,7 @@ function Orders() {
   const { data, isLoading } = useQuery({ queryKey: ["admin", "orders", status, complete], queryFn: () => fetchOrders(status, complete) });
 
   const updateStatus = async (id: string, newStatus: string) => {
-    const { error } = await supabase.from("orders").update({ status: newStatus }).eq("id", id);
+    const { error } = await supabase.from("orders").update({ status: newStatus as any }).eq("id", id);
     if (error) { toast.error(error.message); return; }
     toast.success("স্ট্যাটাস আপডেট হয়েছে");
     qc.invalidateQueries({ queryKey: ["admin"] });
