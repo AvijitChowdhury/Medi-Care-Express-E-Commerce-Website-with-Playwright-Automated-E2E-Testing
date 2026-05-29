@@ -19,6 +19,7 @@ function Checkout() {
   const navigate = useNavigate();
   const { items, setQty, remove, subtotal, clear } = useCart();
   const [loading, setLoading] = useState(false);
+  const [isAuthed, setIsAuthed] = useState(false);
   const [form, setForm] = useState({
     name: "", phone: "", email: "", address: "", city: "", area: "dhaka",
     payment: "cod" as PaymentMethod,
@@ -27,9 +28,13 @@ function Checkout() {
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
-      if (data.user?.email) setForm((f) => ({ ...f, email: data.user!.email ?? "" }));
+      if (data.user?.email) {
+        setIsAuthed(true);
+        setForm((f) => ({ ...f, email: data.user!.email ?? "" }));
+      }
     });
   }, []);
+
 
   if (items.length === 0) {
     return (
