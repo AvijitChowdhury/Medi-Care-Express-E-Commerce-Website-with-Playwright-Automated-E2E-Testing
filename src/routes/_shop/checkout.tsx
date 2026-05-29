@@ -19,6 +19,7 @@ function Checkout() {
   const navigate = useNavigate();
   const { items, setQty, remove, subtotal, clear } = useCart();
   const [loading, setLoading] = useState(false);
+  const [isAuthed, setIsAuthed] = useState(false);
   const [form, setForm] = useState({
     name: "", phone: "", email: "", address: "", city: "", area: "dhaka",
     payment: "cod" as PaymentMethod,
@@ -27,9 +28,13 @@ function Checkout() {
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
-      if (data.user?.email) setForm((f) => ({ ...f, email: data.user!.email ?? "" }));
+      if (data.user?.email) {
+        setIsAuthed(true);
+        setForm((f) => ({ ...f, email: data.user!.email ?? "" }));
+      }
     });
   }, []);
+
 
   if (items.length === 0) {
     return (
@@ -104,7 +109,15 @@ function Checkout() {
     <div className="container mx-auto px-4 py-8 md:py-12">
       <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">চেকআউট</h1>
 
+      {!isAuthed && (
+        <div className="mt-4 bg-primary/5 border border-primary/20 rounded-lg p-4 text-sm flex flex-wrap items-center justify-between gap-3">
+          <span>আপনি গেস্ট হিসেবে অর্ডার দিচ্ছেন। অর্ডার ট্র্যাক ও ইতিহাস সংরক্ষণের জন্য চাইলে লগইন করতে পারেন।</span>
+          <Link to="/login" className="inline-flex h-9 px-4 items-center rounded-md bg-primary text-primary-foreground text-xs font-medium">লগইন করুন</Link>
+        </div>
+      )}
+
       <form onSubmit={placeOrder} className="mt-8 grid lg:grid-cols-3 gap-8">
+
         <div className="lg:col-span-2 space-y-6">
           <Card title="ডেলিভারি তথ্য">
             <div className="grid md:grid-cols-2 gap-4">
