@@ -36,6 +36,28 @@ function AdminLayout() {
     })();
   }, [navigate]);
 
+  useEffect(() => {
+    if (state !== "ok") return;
+    const ch = supabase
+      .channel("admin-global-notify")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_messages" }, (payload) => {
+        const m = payload.new as any;
+        if (m.sender === "user") {
+          if (!loc.pathname.startsWith("/admin/chat")) {
+            playPing();
+            toast.message("নতুন চ্যাট মেসেজ", { description: m.body?.slice(0, 80) });
+          }
+        }
+      })
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "incomplete_orders" }, () => {
+        if (!loc.pathname.startsWith("/admin/incomplete")) {
+          toast.message("নতুন অসম্পূর্ণ অর্ডার", { description: "একজন গ্রাহক চেকআউট শুরু করেছেন" });
+        }
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [state, loc.pathname]);
+
   if (state === "loading") return <div className="min-h-screen flex items-center justify-center text-sm text-muted-foreground">লোড হচ্ছে...</div>;
   if (state === "denied") return (
     <div className="min-h-screen flex items-center justify-center px-4">
