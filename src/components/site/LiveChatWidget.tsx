@@ -77,13 +77,11 @@ export function LiveChatWidget() {
     const body = input.trim();
     setInput("");
     await supabase.from("chat_messages").insert({ session_id: sessionId, sender: "user", body });
+    const { data: sess } = await supabase.from("chat_sessions").select("unread_admin").eq("id", sessionId).single();
     await supabase.from("chat_sessions").update({
       last_message_at: new Date().toISOString(),
-      unread_admin: (await supabase.from("chat_sessions").select("unread_admin").eq("id", sessionId).single()).data?.unread_admin ?? 0,
+      unread_admin: (sess?.unread_admin ?? 0) + 1,
     }).eq("id", sessionId);
-    // increment unread_admin atomically-ish
-    await supabase.rpc;
-    await supabase.from("chat_sessions").update({ unread_admin: ((await supabase.from("chat_sessions").select("unread_admin").eq("id", sessionId).single()).data?.unread_admin ?? 0) + 1 }).eq("id", sessionId);
   };
 
   return (
