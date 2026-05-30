@@ -131,6 +131,13 @@ function Checkout() {
       );
       if (itemErr) throw itemErr;
 
+      if (sessionIdRef.current) {
+        await supabase.from("incomplete_orders")
+          .update({ recovered: true, recovered_order_id: order.id, recovered_at: new Date().toISOString() })
+          .eq("session_id", sessionIdRef.current);
+        localStorage.removeItem("medi-checkout-session");
+      }
+
       clear();
       toast.success("অর্ডার সফলভাবে দেওয়া হয়েছে");
       navigate({ to: "/order/$id", params: { id: order.id } });
