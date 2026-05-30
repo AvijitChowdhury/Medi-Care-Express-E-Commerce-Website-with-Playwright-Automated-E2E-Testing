@@ -14,6 +14,7 @@ import { Route as ShopRouteImport } from './routes/_shop'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as ShopIndexRouteImport } from './routes/_shop/index'
 import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
+import { Route as AdminRecoveryRouteImport } from './routes/admin/recovery'
 import { Route as AdminProductsRouteImport } from './routes/admin/products'
 import { Route as AdminOrdersRouteImport } from './routes/admin/orders'
 import { Route as AdminIncompleteRouteImport } from './routes/admin/incomplete'
@@ -53,6 +54,11 @@ const ShopIndexRoute = ShopIndexRouteImport.update({
 const AdminSettingsRoute = AdminSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminRecoveryRoute = AdminRecoveryRouteImport.update({
+  id: '/recovery',
+  path: '/recovery',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminProductsRoute = AdminProductsRouteImport.update({
@@ -150,6 +156,7 @@ export interface FileRoutesByFullPath {
   '/admin/incomplete': typeof AdminIncompleteRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
+  '/admin/recovery': typeof AdminRecoveryRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/': typeof AdminIndexRoute
   '/order/$id': typeof ShopOrderIdRoute
@@ -170,6 +177,7 @@ export interface FileRoutesByTo {
   '/admin/incomplete': typeof AdminIncompleteRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
+  '/admin/recovery': typeof AdminRecoveryRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/': typeof ShopIndexRoute
   '/admin': typeof AdminIndexRoute
@@ -194,6 +202,7 @@ export interface FileRoutesById {
   '/admin/incomplete': typeof AdminIncompleteRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
+  '/admin/recovery': typeof AdminRecoveryRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/_shop/': typeof ShopIndexRoute
   '/admin/': typeof AdminIndexRoute
@@ -219,6 +228,7 @@ export interface FileRouteTypes {
     | '/admin/incomplete'
     | '/admin/orders'
     | '/admin/products'
+    | '/admin/recovery'
     | '/admin/settings'
     | '/admin/'
     | '/order/$id'
@@ -239,6 +249,7 @@ export interface FileRouteTypes {
     | '/admin/incomplete'
     | '/admin/orders'
     | '/admin/products'
+    | '/admin/recovery'
     | '/admin/settings'
     | '/'
     | '/admin'
@@ -262,6 +273,7 @@ export interface FileRouteTypes {
     | '/admin/incomplete'
     | '/admin/orders'
     | '/admin/products'
+    | '/admin/recovery'
     | '/admin/settings'
     | '/_shop/'
     | '/admin/'
@@ -312,6 +324,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/admin/settings'
       preLoaderRoute: typeof AdminSettingsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/recovery': {
+      id: '/admin/recovery'
+      path: '/recovery'
+      fullPath: '/admin/recovery'
+      preLoaderRoute: typeof AdminRecoveryRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/products': {
@@ -468,6 +487,7 @@ interface AdminRouteChildren {
   AdminIncompleteRoute: typeof AdminIncompleteRoute
   AdminOrdersRoute: typeof AdminOrdersRoute
   AdminProductsRoute: typeof AdminProductsRoute
+  AdminRecoveryRoute: typeof AdminRecoveryRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
@@ -477,6 +497,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminIncompleteRoute: AdminIncompleteRoute,
   AdminOrdersRoute: AdminOrdersRoute,
   AdminProductsRoute: AdminProductsRoute,
+  AdminRecoveryRoute: AdminRecoveryRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
@@ -490,3 +511,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
