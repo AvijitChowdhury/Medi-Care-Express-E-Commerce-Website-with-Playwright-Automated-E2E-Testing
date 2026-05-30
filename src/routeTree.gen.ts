@@ -16,6 +16,7 @@ import { Route as ShopIndexRouteImport } from './routes/_shop/index'
 import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
 import { Route as AdminProductsRouteImport } from './routes/admin/products'
 import { Route as AdminOrdersRouteImport } from './routes/admin/orders'
+import { Route as AdminIncompleteRouteImport } from './routes/admin/incomplete'
 import { Route as AdminCustomersRouteImport } from './routes/admin/customers'
 import { Route as ShopTrackRouteImport } from './routes/_shop/track'
 import { Route as ShopLoginRouteImport } from './routes/_shop/login'
@@ -62,6 +63,11 @@ const AdminProductsRoute = AdminProductsRouteImport.update({
 const AdminOrdersRoute = AdminOrdersRouteImport.update({
   id: '/orders',
   path: '/orders',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminIncompleteRoute = AdminIncompleteRouteImport.update({
+  id: '/incomplete',
+  path: '/incomplete',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminCustomersRoute = AdminCustomersRouteImport.update({
@@ -141,6 +147,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof ShopLoginRoute
   '/track': typeof ShopTrackRoute
   '/admin/customers': typeof AdminCustomersRoute
+  '/admin/incomplete': typeof AdminIncompleteRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
   '/admin/settings': typeof AdminSettingsRoute
@@ -160,6 +167,7 @@ export interface FileRoutesByTo {
   '/login': typeof ShopLoginRoute
   '/track': typeof ShopTrackRoute
   '/admin/customers': typeof AdminCustomersRoute
+  '/admin/incomplete': typeof AdminIncompleteRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
   '/admin/settings': typeof AdminSettingsRoute
@@ -183,6 +191,7 @@ export interface FileRoutesById {
   '/_shop/login': typeof ShopLoginRoute
   '/_shop/track': typeof ShopTrackRoute
   '/admin/customers': typeof AdminCustomersRoute
+  '/admin/incomplete': typeof AdminIncompleteRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
   '/admin/settings': typeof AdminSettingsRoute
@@ -207,6 +216,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/track'
     | '/admin/customers'
+    | '/admin/incomplete'
     | '/admin/orders'
     | '/admin/products'
     | '/admin/settings'
@@ -226,6 +236,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/track'
     | '/admin/customers'
+    | '/admin/incomplete'
     | '/admin/orders'
     | '/admin/products'
     | '/admin/settings'
@@ -248,6 +259,7 @@ export interface FileRouteTypes {
     | '/_shop/login'
     | '/_shop/track'
     | '/admin/customers'
+    | '/admin/incomplete'
     | '/admin/orders'
     | '/admin/products'
     | '/admin/settings'
@@ -314,6 +326,13 @@ declare module '@tanstack/react-router' {
       path: '/orders'
       fullPath: '/admin/orders'
       preLoaderRoute: typeof AdminOrdersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/incomplete': {
+      id: '/admin/incomplete'
+      path: '/incomplete'
+      fullPath: '/admin/incomplete'
+      preLoaderRoute: typeof AdminIncompleteRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/customers': {
@@ -446,6 +465,7 @@ const ShopRouteWithChildren = ShopRoute._addFileChildren(ShopRouteChildren)
 
 interface AdminRouteChildren {
   AdminCustomersRoute: typeof AdminCustomersRoute
+  AdminIncompleteRoute: typeof AdminIncompleteRoute
   AdminOrdersRoute: typeof AdminOrdersRoute
   AdminProductsRoute: typeof AdminProductsRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
@@ -454,6 +474,7 @@ interface AdminRouteChildren {
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminCustomersRoute: AdminCustomersRoute,
+  AdminIncompleteRoute: AdminIncompleteRoute,
   AdminOrdersRoute: AdminOrdersRoute,
   AdminProductsRoute: AdminProductsRoute,
   AdminSettingsRoute: AdminSettingsRoute,
