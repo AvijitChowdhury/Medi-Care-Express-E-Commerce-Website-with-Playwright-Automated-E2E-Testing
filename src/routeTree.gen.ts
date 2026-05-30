@@ -19,6 +19,7 @@ import { Route as AdminProductsRouteImport } from './routes/admin/products'
 import { Route as AdminOrdersRouteImport } from './routes/admin/orders'
 import { Route as AdminIncompleteRouteImport } from './routes/admin/incomplete'
 import { Route as AdminCustomersRouteImport } from './routes/admin/customers'
+import { Route as AdminChatRouteImport } from './routes/admin/chat'
 import { Route as ShopTrackRouteImport } from './routes/_shop/track'
 import { Route as ShopLoginRouteImport } from './routes/_shop/login'
 import { Route as ShopContactRouteImport } from './routes/_shop/contact'
@@ -79,6 +80,11 @@ const AdminIncompleteRoute = AdminIncompleteRouteImport.update({
 const AdminCustomersRoute = AdminCustomersRouteImport.update({
   id: '/customers',
   path: '/customers',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminChatRoute = AdminChatRouteImport.update({
+  id: '/chat',
+  path: '/chat',
   getParentRoute: () => AdminRoute,
 } as any)
 const ShopTrackRoute = ShopTrackRouteImport.update({
@@ -152,6 +158,7 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ShopContactRoute
   '/login': typeof ShopLoginRoute
   '/track': typeof ShopTrackRoute
+  '/admin/chat': typeof AdminChatRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/incomplete': typeof AdminIncompleteRoute
   '/admin/orders': typeof AdminOrdersRoute
@@ -173,6 +180,7 @@ export interface FileRoutesByTo {
   '/contact': typeof ShopContactRoute
   '/login': typeof ShopLoginRoute
   '/track': typeof ShopTrackRoute
+  '/admin/chat': typeof AdminChatRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/incomplete': typeof AdminIncompleteRoute
   '/admin/orders': typeof AdminOrdersRoute
@@ -198,6 +206,7 @@ export interface FileRoutesById {
   '/_shop/contact': typeof ShopContactRoute
   '/_shop/login': typeof ShopLoginRoute
   '/_shop/track': typeof ShopTrackRoute
+  '/admin/chat': typeof AdminChatRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/incomplete': typeof AdminIncompleteRoute
   '/admin/orders': typeof AdminOrdersRoute
@@ -224,6 +233,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/login'
     | '/track'
+    | '/admin/chat'
     | '/admin/customers'
     | '/admin/incomplete'
     | '/admin/orders'
@@ -245,6 +255,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/login'
     | '/track'
+    | '/admin/chat'
     | '/admin/customers'
     | '/admin/incomplete'
     | '/admin/orders'
@@ -269,6 +280,7 @@ export interface FileRouteTypes {
     | '/_shop/contact'
     | '/_shop/login'
     | '/_shop/track'
+    | '/admin/chat'
     | '/admin/customers'
     | '/admin/incomplete'
     | '/admin/orders'
@@ -359,6 +371,13 @@ declare module '@tanstack/react-router' {
       path: '/customers'
       fullPath: '/admin/customers'
       preLoaderRoute: typeof AdminCustomersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/chat': {
+      id: '/admin/chat'
+      path: '/chat'
+      fullPath: '/admin/chat'
+      preLoaderRoute: typeof AdminChatRouteImport
       parentRoute: typeof AdminRoute
     }
     '/_shop/track': {
@@ -483,6 +502,7 @@ const ShopRouteChildren: ShopRouteChildren = {
 const ShopRouteWithChildren = ShopRoute._addFileChildren(ShopRouteChildren)
 
 interface AdminRouteChildren {
+  AdminChatRoute: typeof AdminChatRoute
   AdminCustomersRoute: typeof AdminCustomersRoute
   AdminIncompleteRoute: typeof AdminIncompleteRoute
   AdminOrdersRoute: typeof AdminOrdersRoute
@@ -493,6 +513,7 @@ interface AdminRouteChildren {
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminChatRoute: AdminChatRoute,
   AdminCustomersRoute: AdminCustomersRoute,
   AdminIncompleteRoute: AdminIncompleteRoute,
   AdminOrdersRoute: AdminOrdersRoute,
@@ -511,3 +532,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
