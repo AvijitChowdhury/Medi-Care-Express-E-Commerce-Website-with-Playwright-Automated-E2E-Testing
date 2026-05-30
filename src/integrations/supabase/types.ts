@@ -101,6 +101,137 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_messages: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          sender: string
+          session_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          sender: string
+          session_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          sender?: string
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "chat_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_sessions: {
+        Row: {
+          created_at: string
+          id: string
+          last_message_at: string
+          status: string
+          unread_admin: number
+          unread_user: number
+          user_id: string | null
+          user_name: string
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_message_at?: string
+          status?: string
+          unread_admin?: number
+          unread_user?: number
+          user_id?: string | null
+          user_name: string
+          username: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_message_at?: string
+          status?: string
+          unread_admin?: number
+          unread_user?: number
+          user_id?: string | null
+          user_name?: string
+          username?: string
+        }
+        Relationships: []
+      }
+      incomplete_orders: {
+        Row: {
+          cart: Json
+          created_at: string
+          customer_email: string | null
+          customer_name: string | null
+          customer_phone: string | null
+          id: string
+          notes: string | null
+          payment_method: string | null
+          recovered: boolean
+          recovered_at: string | null
+          recovered_order_id: string | null
+          session_id: string
+          shipping_address: string | null
+          shipping_area: string | null
+          shipping_city: string | null
+          subtotal: number
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          cart?: Json
+          created_at?: string
+          customer_email?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          id?: string
+          notes?: string | null
+          payment_method?: string | null
+          recovered?: boolean
+          recovered_at?: string | null
+          recovered_order_id?: string | null
+          session_id: string
+          shipping_address?: string | null
+          shipping_area?: string | null
+          shipping_city?: string | null
+          subtotal?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          cart?: Json
+          created_at?: string
+          customer_email?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          id?: string
+          notes?: string | null
+          payment_method?: string | null
+          recovered?: boolean
+          recovered_at?: string | null
+          recovered_order_id?: string | null
+          session_id?: string
+          shipping_address?: string | null
+          shipping_area?: string | null
+          shipping_city?: string | null
+          subtotal?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           id: string

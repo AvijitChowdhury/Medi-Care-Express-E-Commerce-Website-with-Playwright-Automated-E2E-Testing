@@ -2,6 +2,7 @@ import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { AnnouncementBar } from "@/components/site/AnnouncementBar";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
+import { LiveChatWidget } from "@/components/site/LiveChatWidget";
 
 export const Route = createFileRoute("/_shop")({
   component: ShopLayout,
@@ -16,6 +17,7 @@ function ShopLayout() {
         <Outlet />
       </main>
       <Footer />
+      <LiveChatWidget />
     </div>
   );
 }

@@ -14,9 +14,12 @@ import { Route as ShopRouteImport } from './routes/_shop'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as ShopIndexRouteImport } from './routes/_shop/index'
 import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
+import { Route as AdminRecoveryRouteImport } from './routes/admin/recovery'
 import { Route as AdminProductsRouteImport } from './routes/admin/products'
 import { Route as AdminOrdersRouteImport } from './routes/admin/orders'
+import { Route as AdminIncompleteRouteImport } from './routes/admin/incomplete'
 import { Route as AdminCustomersRouteImport } from './routes/admin/customers'
+import { Route as AdminChatRouteImport } from './routes/admin/chat'
 import { Route as ShopTrackRouteImport } from './routes/_shop/track'
 import { Route as ShopLoginRouteImport } from './routes/_shop/login'
 import { Route as ShopContactRouteImport } from './routes/_shop/contact'
@@ -54,6 +57,11 @@ const AdminSettingsRoute = AdminSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminRecoveryRoute = AdminRecoveryRouteImport.update({
+  id: '/recovery',
+  path: '/recovery',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminProductsRoute = AdminProductsRouteImport.update({
   id: '/products',
   path: '/products',
@@ -64,9 +72,19 @@ const AdminOrdersRoute = AdminOrdersRouteImport.update({
   path: '/orders',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminIncompleteRoute = AdminIncompleteRouteImport.update({
+  id: '/incomplete',
+  path: '/incomplete',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminCustomersRoute = AdminCustomersRouteImport.update({
   id: '/customers',
   path: '/customers',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminChatRoute = AdminChatRouteImport.update({
+  id: '/chat',
+  path: '/chat',
   getParentRoute: () => AdminRoute,
 } as any)
 const ShopTrackRoute = ShopTrackRouteImport.update({
@@ -140,9 +158,12 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ShopContactRoute
   '/login': typeof ShopLoginRoute
   '/track': typeof ShopTrackRoute
+  '/admin/chat': typeof AdminChatRoute
   '/admin/customers': typeof AdminCustomersRoute
+  '/admin/incomplete': typeof AdminIncompleteRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
+  '/admin/recovery': typeof AdminRecoveryRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/': typeof AdminIndexRoute
   '/order/$id': typeof ShopOrderIdRoute
@@ -159,9 +180,12 @@ export interface FileRoutesByTo {
   '/contact': typeof ShopContactRoute
   '/login': typeof ShopLoginRoute
   '/track': typeof ShopTrackRoute
+  '/admin/chat': typeof AdminChatRoute
   '/admin/customers': typeof AdminCustomersRoute
+  '/admin/incomplete': typeof AdminIncompleteRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
+  '/admin/recovery': typeof AdminRecoveryRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/': typeof ShopIndexRoute
   '/admin': typeof AdminIndexRoute
@@ -182,9 +206,12 @@ export interface FileRoutesById {
   '/_shop/contact': typeof ShopContactRoute
   '/_shop/login': typeof ShopLoginRoute
   '/_shop/track': typeof ShopTrackRoute
+  '/admin/chat': typeof AdminChatRoute
   '/admin/customers': typeof AdminCustomersRoute
+  '/admin/incomplete': typeof AdminIncompleteRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
+  '/admin/recovery': typeof AdminRecoveryRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/_shop/': typeof ShopIndexRoute
   '/admin/': typeof AdminIndexRoute
@@ -206,9 +233,12 @@ export interface FileRouteTypes {
     | '/contact'
     | '/login'
     | '/track'
+    | '/admin/chat'
     | '/admin/customers'
+    | '/admin/incomplete'
     | '/admin/orders'
     | '/admin/products'
+    | '/admin/recovery'
     | '/admin/settings'
     | '/admin/'
     | '/order/$id'
@@ -225,9 +255,12 @@ export interface FileRouteTypes {
     | '/contact'
     | '/login'
     | '/track'
+    | '/admin/chat'
     | '/admin/customers'
+    | '/admin/incomplete'
     | '/admin/orders'
     | '/admin/products'
+    | '/admin/recovery'
     | '/admin/settings'
     | '/'
     | '/admin'
@@ -247,9 +280,12 @@ export interface FileRouteTypes {
     | '/_shop/contact'
     | '/_shop/login'
     | '/_shop/track'
+    | '/admin/chat'
     | '/admin/customers'
+    | '/admin/incomplete'
     | '/admin/orders'
     | '/admin/products'
+    | '/admin/recovery'
     | '/admin/settings'
     | '/_shop/'
     | '/admin/'
@@ -302,6 +338,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSettingsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/recovery': {
+      id: '/admin/recovery'
+      path: '/recovery'
+      fullPath: '/admin/recovery'
+      preLoaderRoute: typeof AdminRecoveryRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/products': {
       id: '/admin/products'
       path: '/products'
@@ -316,11 +359,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminOrdersRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/incomplete': {
+      id: '/admin/incomplete'
+      path: '/incomplete'
+      fullPath: '/admin/incomplete'
+      preLoaderRoute: typeof AdminIncompleteRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/customers': {
       id: '/admin/customers'
       path: '/customers'
       fullPath: '/admin/customers'
       preLoaderRoute: typeof AdminCustomersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/chat': {
+      id: '/admin/chat'
+      path: '/chat'
+      fullPath: '/admin/chat'
+      preLoaderRoute: typeof AdminChatRouteImport
       parentRoute: typeof AdminRoute
     }
     '/_shop/track': {
@@ -445,17 +502,23 @@ const ShopRouteChildren: ShopRouteChildren = {
 const ShopRouteWithChildren = ShopRoute._addFileChildren(ShopRouteChildren)
 
 interface AdminRouteChildren {
+  AdminChatRoute: typeof AdminChatRoute
   AdminCustomersRoute: typeof AdminCustomersRoute
+  AdminIncompleteRoute: typeof AdminIncompleteRoute
   AdminOrdersRoute: typeof AdminOrdersRoute
   AdminProductsRoute: typeof AdminProductsRoute
+  AdminRecoveryRoute: typeof AdminRecoveryRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminChatRoute: AdminChatRoute,
   AdminCustomersRoute: AdminCustomersRoute,
+  AdminIncompleteRoute: AdminIncompleteRoute,
   AdminOrdersRoute: AdminOrdersRoute,
   AdminProductsRoute: AdminProductsRoute,
+  AdminRecoveryRoute: AdminRecoveryRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminIndexRoute: AdminIndexRoute,
 }

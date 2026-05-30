@@ -1,16 +1,21 @@
 import { createFileRoute, Link, Outlet, useNavigate, useLocation } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { LayoutDashboard, ShoppingBag, Package, Users, Settings, LogOut, Store } from "lucide-react";
+import { playPing } from "@/lib/chat-sound";
+import { toast } from "sonner";
+import { LayoutDashboard, ShoppingBag, Package, Users, Settings, LogOut, Store, AlertTriangle, BarChart3, MessageCircle } from "lucide-react";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "অ্যাডমিন প্যানেল — মেডিকেয়ার" }] }),
-  component: AdminLayout, // reg
+  component: AdminLayout,
 });
 
 const nav = [
   { to: "/admin", label: "ড্যাশবোর্ড", Icon: LayoutDashboard, exact: true },
   { to: "/admin/orders", label: "অর্ডার", Icon: ShoppingBag },
+  { to: "/admin/incomplete", label: "অসম্পূর্ণ", Icon: AlertTriangle },
+  { to: "/admin/recovery", label: "রিকভারি", Icon: BarChart3 },
+  { to: "/admin/chat", label: "লাইভ চ্যাট", Icon: MessageCircle },
   { to: "/admin/products", label: "পণ্য", Icon: Package },
   { to: "/admin/customers", label: "গ্রাহক", Icon: Users },
   { to: "/admin/settings", label: "সেটিংস", Icon: Settings },
@@ -30,6 +35,28 @@ function AdminLayout() {
       setState(isAdmin ? "ok" : "denied");
     })();
   }, [navigate]);
+
+  useEffect(() => {
+    if (state !== "ok") return;
+    const ch = supabase
+      .channel("admin-global-notify")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_messages" }, (payload) => {
+        const m = payload.new as any;
+        if (m.sender === "user") {
+          if (!loc.pathname.startsWith("/admin/chat")) {
+            playPing();
+            toast.message("নতুন চ্যাট মেসেজ", { description: m.body?.slice(0, 80) });
+          }
+        }
+      })
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "incomplete_orders" }, () => {
+        if (!loc.pathname.startsWith("/admin/incomplete")) {
+          toast.message("নতুন অসম্পূর্ণ অর্ডার", { description: "একজন গ্রাহক চেকআউট শুরু করেছেন" });
+        }
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [state, loc.pathname]);
 
   if (state === "loading") return <div className="min-h-screen flex items-center justify-center text-sm text-muted-foreground">লোড হচ্ছে...</div>;
   if (state === "denied") return (
