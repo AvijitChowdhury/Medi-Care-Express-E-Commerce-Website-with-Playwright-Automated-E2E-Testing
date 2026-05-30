@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useCart } from "@/lib/cart-store";
 import { taka, toBnDigits } from "@/lib/format";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Minus, Plus, Trash2 } from "lucide-react";
@@ -15,11 +15,23 @@ type PaymentMethod = "cod" | "partial_online";
 const DHAKA_SHIPPING = 70;
 const OUTSIDE_SHIPPING = 130;
 
+function getCheckoutSessionId() {
+  if (typeof window === "undefined") return "";
+  let id = localStorage.getItem("medi-checkout-session");
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem("medi-checkout-session", id);
+  }
+  return id;
+}
+
 function Checkout() {
   const navigate = useNavigate();
   const { items, setQty, remove, subtotal, clear } = useCart();
   const [loading, setLoading] = useState(false);
   const [isAuthed, setIsAuthed] = useState(false);
+  const sessionIdRef = useRef<string>("");
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [form, setForm] = useState({
     name: "", phone: "", email: "", address: "", city: "", area: "dhaka",
     payment: "cod" as PaymentMethod,
@@ -27,6 +39,7 @@ function Checkout() {
   });
 
   useEffect(() => {
+    sessionIdRef.current = getCheckoutSessionId();
     supabase.auth.getUser().then(({ data }) => {
       if (data.user?.email) {
         setIsAuthed(true);
@@ -34,6 +47,30 @@ function Checkout() {
       }
     });
   }, []);
+
+  useEffect(() => {
+    if (!sessionIdRef.current) return;
+    const hasAny = form.name || form.phone || form.email || form.address || form.city;
+    if (!hasAny || items.length === 0) return;
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(async () => {
+      await supabase.from("incomplete_orders").upsert({
+        session_id: sessionIdRef.current,
+        customer_name: form.name || null,
+        customer_phone: form.phone || null,
+        customer_email: form.email || null,
+        shipping_address: form.address || null,
+        shipping_city: form.city || null,
+        shipping_area: form.area || null,
+        payment_method: form.payment,
+        notes: form.notes || null,
+        cart: items as any,
+        subtotal: subtotal(),
+        recovered: false,
+      }, { onConflict: "session_id" });
+    }, 800);
+    return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
+  }, [form, items, subtotal]);
 
 
   if (items.length === 0) {
