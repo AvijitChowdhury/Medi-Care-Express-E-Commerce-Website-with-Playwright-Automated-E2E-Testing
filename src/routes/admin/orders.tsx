@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { taka, toBnDigits } from "@/lib/format";
 import { useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Truck, RefreshCw } from "lucide-react";
+import { sendOrderToSteadfast, sendOrdersBulkToSteadfast, syncSteadfastStatuses } from "@/lib/steadfast.functions";
 
 const PAGE_SIZE = 20;
 import { toast } from "sonner";
@@ -52,6 +54,9 @@ function Orders() {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [showManual, setShowManual] = useState(false);
+  const sendOne = useServerFn(sendOrderToSteadfast);
+  const sendBulk = useServerFn(sendOrdersBulkToSteadfast);
+  const syncAll = useServerFn(syncSteadfastStatuses);
   const { data, isLoading } = useQuery({
     queryKey: ["admin", "orders", status, complete, view, page],
     queryFn: () => fetchOrders(status, complete, view, page),
@@ -113,11 +118,44 @@ function Orders() {
     qc.invalidateQueries({ queryKey: ["admin"] });
   };
 
+  const [sfBusy, setSfBusy] = useState(false);
+  const sendOneSteadfast = async (id: string) => {
+    setSfBusy(true);
+    try {
+      const r: any = await sendOne({ data: { order_id: id } });
+      if (r?.already) toast.info("এই অর্ডার আগেই Steadfast-এ পাঠানো হয়েছে");
+      else toast.success(`Steadfast-এ পাঠানো হয়েছে (${r?.tracking_code ?? ""})`);
+      qc.invalidateQueries({ queryKey: ["admin"] });
+    } catch (e: any) { toast.error(e?.message || "ব্যর্থ"); } finally { setSfBusy(false); }
+  };
+  const bulkSteadfast = async () => {
+    if (selected.size === 0) return;
+    if (!confirm(`${toBnDigits(selected.size)}টি অর্ডার Steadfast-এ পাঠাবেন?`)) return;
+    setSfBusy(true);
+    try {
+      const r: any = await sendBulk({ data: { order_ids: Array.from(selected) } });
+      toast.success(`পাঠানো: ${toBnDigits(r?.sent ?? 0)}, ব্যর্থ: ${toBnDigits(r?.failed ?? 0)}`);
+      setSelected(new Set());
+      qc.invalidateQueries({ queryKey: ["admin"] });
+    } catch (e: any) { toast.error(e?.message || "ব্যর্থ"); } finally { setSfBusy(false); }
+  };
+  const runSync = async () => {
+    setSfBusy(true);
+    try {
+      const r: any = await syncAll({});
+      toast.success(`চেক: ${toBnDigits(r?.checked ?? 0)}, আপডেট: ${toBnDigits(r?.updated ?? 0)}`);
+      qc.invalidateQueries({ queryKey: ["admin"] });
+    } catch (e: any) { toast.error(e?.message || "ব্যর্থ"); } finally { setSfBusy(false); }
+  };
+
   return (
     <div className="p-4 md:p-8 space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <h1 className="text-2xl font-semibold tracking-tight">অর্ডার ম্যানেজমেন্ট</h1>
         <div className="flex gap-2">
+          <button onClick={runSync} disabled={sfBusy} className="h-10 px-3 rounded-md border border-border text-sm inline-flex items-center gap-2 disabled:opacity-60">
+            <RefreshCw className={`h-4 w-4 ${sfBusy ? "animate-spin" : ""}`} /> Steadfast সিঙ্ক
+          </button>
           <button onClick={() => setShowManual(true)} className="h-10 px-4 rounded-md bg-primary text-primary-foreground text-sm inline-flex items-center gap-2">
             <Plus className="h-4 w-4" /> ম্যানুয়াল অর্ডার
           </button>
@@ -159,6 +197,7 @@ function Orders() {
                 <option value="">স্ট্যাটাস পরিবর্তন...</option>
                 {STATUSES.map((s) => <option key={s} value={s}>{STATUS_LABELS[s]}</option>)}
               </select>
+              <button onClick={bulkSteadfast} disabled={sfBusy} className="h-8 px-3 rounded bg-emerald-500 text-white text-xs inline-flex items-center gap-1.5 disabled:opacity-60"><Truck className="h-3 w-3" /> Steadfast-এ পাঠান</button>
               <button onClick={bulkTrash} className="h-8 px-3 rounded bg-background/10 hover:bg-background/20 text-xs inline-flex items-center gap-1.5"><Trash2 className="h-3 w-3" /> ট্র্যাশে পাঠান</button>
             </>
           ) : (
@@ -209,8 +248,16 @@ function Orders() {
                         <select value={o.status} onChange={(e) => updateStatus(o.id, e.target.value)} className="h-9 w-full px-2 rounded-md border border-input bg-background text-xs">
                           {STATUSES.map((s) => <option key={s} value={s}>{STATUS_LABELS[s]}</option>)}
                         </select>
+                        {o.steadfast_tracking_code ? (
+                          <div className="text-[10px] text-emerald-600 mt-1 font-mono truncate">SF: {o.steadfast_tracking_code} · {o.steadfast_status ?? "—"}</div>
+                        ) : null}
                       </div>
-                      <div className="col-span-4 md:col-span-1 text-right">
+                      <div className="col-span-4 md:col-span-1 text-right flex items-center justify-end gap-1">
+                        {!o.steadfast_consignment_id && view === "active" && (
+                          <button onClick={() => sendOneSteadfast(o.id)} disabled={sfBusy} title="Steadfast-এ পাঠান" className="p-2 hover:bg-emerald-50 text-emerald-600 rounded disabled:opacity-40">
+                            <Truck className="h-4 w-4" />
+                          </button>
+                        )}
                         <button onClick={() => setExpanded(isOpen ? null : o.id)} className="p-2 hover:bg-muted rounded">
                           {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                         </button>

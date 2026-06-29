@@ -37,6 +37,7 @@ import { Route as ShopPolicyRefundRouteImport } from './routes/_shop/policy/refu
 import { Route as ShopPolicyPrivacyRouteImport } from './routes/_shop/policy/privacy'
 import { Route as ShopOrderIdRouteImport } from './routes/_shop/order/$id'
 import { Route as ApiPublicUddoktapayCallbackRouteImport } from './routes/api/public/uddoktapay/callback'
+import { Route as ApiPublicSteadfastSyncRouteImport } from './routes/api/public/steadfast/sync'
 import { Route as ApiPaymentUddoktapayCreateRouteImport } from './routes/api/payment/uddoktapay/create'
 
 const AdminRoute = AdminRouteImport.update({
@@ -179,6 +180,11 @@ const ApiPublicUddoktapayCallbackRoute =
     path: '/api/public/uddoktapay/callback',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicSteadfastSyncRoute = ApiPublicSteadfastSyncRouteImport.update({
+  id: '/api/public/steadfast/sync',
+  path: '/api/public/steadfast/sync',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPaymentUddoktapayCreateRoute =
   ApiPaymentUddoktapayCreateRouteImport.update({
     id: '/api/payment/uddoktapay/create',
@@ -214,6 +220,7 @@ export interface FileRoutesByFullPath {
   '/api/public/fb-capi': typeof ApiPublicFbCapiRoute
   '/products/': typeof ShopProductsIndexRoute
   '/api/payment/uddoktapay/create': typeof ApiPaymentUddoktapayCreateRoute
+  '/api/public/steadfast/sync': typeof ApiPublicSteadfastSyncRoute
   '/api/public/uddoktapay/callback': typeof ApiPublicUddoktapayCallbackRoute
 }
 export interface FileRoutesByTo {
@@ -243,6 +250,7 @@ export interface FileRoutesByTo {
   '/api/public/fb-capi': typeof ApiPublicFbCapiRoute
   '/products': typeof ShopProductsIndexRoute
   '/api/payment/uddoktapay/create': typeof ApiPaymentUddoktapayCreateRoute
+  '/api/public/steadfast/sync': typeof ApiPublicSteadfastSyncRoute
   '/api/public/uddoktapay/callback': typeof ApiPublicUddoktapayCallbackRoute
 }
 export interface FileRoutesById {
@@ -275,6 +283,7 @@ export interface FileRoutesById {
   '/api/public/fb-capi': typeof ApiPublicFbCapiRoute
   '/_shop/products/': typeof ShopProductsIndexRoute
   '/api/payment/uddoktapay/create': typeof ApiPaymentUddoktapayCreateRoute
+  '/api/public/steadfast/sync': typeof ApiPublicSteadfastSyncRoute
   '/api/public/uddoktapay/callback': typeof ApiPublicUddoktapayCallbackRoute
 }
 export interface FileRouteTypes {
@@ -307,6 +316,7 @@ export interface FileRouteTypes {
     | '/api/public/fb-capi'
     | '/products/'
     | '/api/payment/uddoktapay/create'
+    | '/api/public/steadfast/sync'
     | '/api/public/uddoktapay/callback'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -336,6 +346,7 @@ export interface FileRouteTypes {
     | '/api/public/fb-capi'
     | '/products'
     | '/api/payment/uddoktapay/create'
+    | '/api/public/steadfast/sync'
     | '/api/public/uddoktapay/callback'
   id:
     | '__root__'
@@ -367,6 +378,7 @@ export interface FileRouteTypes {
     | '/api/public/fb-capi'
     | '/_shop/products/'
     | '/api/payment/uddoktapay/create'
+    | '/api/public/steadfast/sync'
     | '/api/public/uddoktapay/callback'
   fileRoutesById: FileRoutesById
 }
@@ -375,6 +387,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   ApiPublicFbCapiRoute: typeof ApiPublicFbCapiRoute
   ApiPaymentUddoktapayCreateRoute: typeof ApiPaymentUddoktapayCreateRoute
+  ApiPublicSteadfastSyncRoute: typeof ApiPublicSteadfastSyncRoute
   ApiPublicUddoktapayCallbackRoute: typeof ApiPublicUddoktapayCallbackRoute
 }
 
@@ -576,6 +589,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicUddoktapayCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/steadfast/sync': {
+      id: '/api/public/steadfast/sync'
+      path: '/api/public/steadfast/sync'
+      fullPath: '/api/public/steadfast/sync'
+      preLoaderRoute: typeof ApiPublicSteadfastSyncRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/payment/uddoktapay/create': {
       id: '/api/payment/uddoktapay/create'
       path: '/api/payment/uddoktapay/create'
@@ -655,6 +675,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   ApiPublicFbCapiRoute: ApiPublicFbCapiRoute,
   ApiPaymentUddoktapayCreateRoute: ApiPaymentUddoktapayCreateRoute,
+  ApiPublicSteadfastSyncRoute: ApiPublicSteadfastSyncRoute,
   ApiPublicUddoktapayCallbackRoute: ApiPublicUddoktapayCallbackRoute,
 }
 export const routeTree = rootRouteImport
