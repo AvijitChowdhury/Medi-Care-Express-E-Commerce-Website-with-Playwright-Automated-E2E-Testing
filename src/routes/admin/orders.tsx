@@ -3,6 +3,9 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { taka, toBnDigits } from "@/lib/format";
 import { useMemo, useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+
+const PAGE_SIZE = 20;
 import { toast } from "sonner";
 import { ChevronDown, ChevronUp, Trash2, RotateCcw, Plus, X, Search } from "lucide-react";
 
