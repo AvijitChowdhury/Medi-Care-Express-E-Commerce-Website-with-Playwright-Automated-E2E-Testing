@@ -387,6 +387,14 @@ function ManualOrderModal({ onClose, onSaved }: { onClose: () => void; onSaved: 
       toast.error("গ্রাহকের নাম, ফোন, ঠিকানা ও শহর আবশ্যক"); return;
     }
     if (items.length === 0) { toast.error("অন্তত একটি পণ্য যোগ করুন"); return; }
+    // Auto fraud check
+    try {
+      const fr: any = await checkFraudCached(form.customer_phone);
+      if (fr?.ok && (fr.risk_level === "high" || fr.risk_level === "medium")) {
+        const proceed = confirm(`⚠️ ফ্রড সতর্কতা\n\nঝুঁকি: ${fr.risk_level.toUpperCase()}\nমোট অর্ডার: ${fr.total_orders}\nবাতিল: ${fr.total_cancelled}\nসফলতার হার: ${fr.success_ratio}%\n\nতবুও অর্ডার তৈরি করবেন?`);
+        if (!proceed) return;
+      }
+    } catch {}
     setSaving(true);
     const paid = Number(form.paid_amount) || 0;
     const { data: ord, error } = await supabase.from("orders").insert({
