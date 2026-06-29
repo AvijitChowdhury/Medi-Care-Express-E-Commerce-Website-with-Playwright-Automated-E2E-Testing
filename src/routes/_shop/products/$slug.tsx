@@ -1,17 +1,19 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchProductBySlug } from "@/lib/queries";
 import { img } from "@/lib/images";
 import { taka, toBnDigits } from "@/lib/format";
 import { useEffect, useRef, useState } from "react";
 import { Minus, Plus, ShoppingBag, ShieldCheck, Truck, RotateCcw, Star } from "lucide-react";
 import { useCart } from "@/lib/cart-store";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { trackEvent } from "@/lib/fb-pixel";
 
 export const Route = createFileRoute("/_shop/products/$slug")({
   component: ProductDetail,
 });
+
 
 function ProductDetail() {
   const { slug } = Route.useParams();
