@@ -44,6 +44,10 @@ function Checkout() {
     payment: "cod" as PaymentMethod,
     notes: "",
   });
+  const [couponInput, setCouponInput] = useState("");
+  const [coupon, setCoupon] = useState<{ code: string; discount: number } | null>(null);
+  const [couponBusy, setCouponBusy] = useState(false);
+
 
   useEffect(() => {
     const s = getCheckoutSession();
@@ -93,9 +97,24 @@ function Checkout() {
 
   const sub = subtotal();
   const shipping = form.area === "dhaka" ? DHAKA_SHIPPING : OUTSIDE_SHIPPING;
-  const total = sub + shipping;
+  const discount = coupon?.discount ?? 0;
+  const total = Math.max(0, sub - discount) + shipping;
   const advance = form.payment === "partial_online" ? shipping : 0;
   const due = total - advance;
+
+  const applyCoupon = async () => {
+    const code = couponInput.trim();
+    if (!code) return;
+    setCouponBusy(true);
+    const { data, error } = await supabase.rpc("apply_coupon", { p_code: code, p_subtotal: sub } as any);
+    setCouponBusy(false);
+    if (error) { toast.error(error.message); return; }
+    const row = Array.isArray(data) ? data[0] : data;
+    if (!row) { toast.error("কুপন প্রয়োগ করা যায়নি"); return; }
+    setCoupon({ code: row.code, discount: Number(row.discount) });
+    toast.success(`কুপন প্রয়োগ হয়েছে: ${taka(Number(row.discount))} ছাড়`);
+  };
+  const removeCoupon = () => { setCoupon(null); setCouponInput(""); };
 
   const placeOrder = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -123,6 +142,8 @@ function Checkout() {
         shipping_area: form.area,
         subtotal: sub,
         delivery_fee: shipping,
+        discount_amount: discount,
+        coupon_code: coupon?.code ?? null,
         total,
         payment_method: form.payment,
         payment_status: form.payment === "partial_online" ? "partial" : "unpaid",
@@ -131,9 +152,14 @@ function Checkout() {
         status: "pending",
         is_complete: true,
         notes: form.notes || null,
-      }).select().single();
+      } as any).select().single();
 
       if (error) throw error;
+
+      if (coupon?.code) {
+        await supabase.rpc("increment_coupon_usage", { p_code: coupon.code } as any);
+      }
+
 
       const { error: itemErr } = await supabase.from("order_items").insert(
         items.map((it) => ({
@@ -293,11 +319,28 @@ function Checkout() {
               </div>
             ))}
           </div>
+          <div className="mt-4 pt-4 border-t border-border">
+            {coupon ? (
+              <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-md px-3 py-2 text-sm">
+                <span className="text-emerald-700">কুপন <strong className="font-mono">{coupon.code}</strong> প্রয়োগ হয়েছে</span>
+                <button type="button" onClick={removeCoupon} className="text-xs text-destructive">সরান</button>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <input value={couponInput} onChange={(e) => setCouponInput(e.target.value.toUpperCase())} placeholder="কুপন কোড" className="flex-1 h-10 px-3 rounded-md border border-input bg-background text-sm font-mono" />
+                <button type="button" onClick={applyCoupon} disabled={couponBusy || !couponInput.trim()} className="h-10 px-4 rounded-md border border-primary text-primary text-sm disabled:opacity-50">
+                  {couponBusy ? "..." : "প্রয়োগ"}
+                </button>
+              </div>
+            )}
+          </div>
           <div className="mt-4 pt-4 border-t border-border space-y-2 text-sm">
             <Row k="সাবটোটাল" v={taka(sub)} />
+            {discount > 0 && <Row k="ছাড়" v={`- ${taka(discount)}`} accent />}
             <Row k="শিপিং" v={taka(shipping)} />
             {form.payment === "partial_online" && <Row k="অগ্রিম পেমেন্ট" v={taka(advance)} accent />}
           </div>
+
           <div className="mt-3 pt-3 border-t border-border flex justify-between font-semibold">
             <span>মোট</span><span className="text-primary">{taka(total)}</span>
           </div>

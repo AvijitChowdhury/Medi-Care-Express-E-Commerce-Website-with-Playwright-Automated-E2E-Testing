@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { taka, toBnDigits } from "@/lib/format";
-import { LogOut, Package } from "lucide-react";
+import { LogOut, Package, Star } from "lucide-react";
 
 export const Route = createFileRoute("/_shop/account")({
   head: () => ({ meta: [{ title: "আমার অ্যাকাউন্ট — মেডিকেয়ার" }] }),
@@ -49,9 +49,15 @@ function Account() {
           <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">স্বাগতম{profile?.full_name ? `, ${profile.full_name}` : ""}</h1>
           <p className="mt-1 text-sm text-muted-foreground">{user?.email}</p>
         </div>
-        <button onClick={signOut} className="h-10 px-4 rounded-md border border-border text-sm inline-flex items-center gap-2">
-          <LogOut className="h-4 w-4" /> লগআউট
-        </button>
+        <div className="flex gap-2">
+          <Link to="/my-reviews" className="h-10 px-4 rounded-md border border-border text-sm inline-flex items-center gap-2">
+            <Star className="h-4 w-4" /> আমার রিভিউ
+          </Link>
+          <button onClick={signOut} className="h-10 px-4 rounded-md border border-border text-sm inline-flex items-center gap-2">
+            <LogOut className="h-4 w-4" /> লগআউট
+          </button>
+        </div>
+
       </div>
 
       <div className="mt-10">

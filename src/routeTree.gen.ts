@@ -19,9 +19,11 @@ import { Route as AdminProductsRouteImport } from './routes/admin/products'
 import { Route as AdminOrdersRouteImport } from './routes/admin/orders'
 import { Route as AdminIncompleteRouteImport } from './routes/admin/incomplete'
 import { Route as AdminCustomersRouteImport } from './routes/admin/customers'
+import { Route as AdminCouponsRouteImport } from './routes/admin/coupons'
 import { Route as AdminChatRouteImport } from './routes/admin/chat'
 import { Route as AdminBrandsRouteImport } from './routes/admin/brands'
 import { Route as ShopTrackRouteImport } from './routes/_shop/track'
+import { Route as ShopMyReviewsRouteImport } from './routes/_shop/my-reviews'
 import { Route as ShopLoginRouteImport } from './routes/_shop/login'
 import { Route as ShopContactRouteImport } from './routes/_shop/contact'
 import { Route as ShopCheckoutRouteImport } from './routes/_shop/checkout'
@@ -86,6 +88,11 @@ const AdminCustomersRoute = AdminCustomersRouteImport.update({
   path: '/customers',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminCouponsRoute = AdminCouponsRouteImport.update({
+  id: '/coupons',
+  path: '/coupons',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminChatRoute = AdminChatRouteImport.update({
   id: '/chat',
   path: '/chat',
@@ -99,6 +106,11 @@ const AdminBrandsRoute = AdminBrandsRouteImport.update({
 const ShopTrackRoute = ShopTrackRouteImport.update({
   id: '/track',
   path: '/track',
+  getParentRoute: () => ShopRoute,
+} as any)
+const ShopMyReviewsRoute = ShopMyReviewsRouteImport.update({
+  id: '/my-reviews',
+  path: '/my-reviews',
   getParentRoute: () => ShopRoute,
 } as any)
 const ShopLoginRoute = ShopLoginRouteImport.update({
@@ -183,9 +195,11 @@ export interface FileRoutesByFullPath {
   '/checkout': typeof ShopCheckoutRoute
   '/contact': typeof ShopContactRoute
   '/login': typeof ShopLoginRoute
+  '/my-reviews': typeof ShopMyReviewsRoute
   '/track': typeof ShopTrackRoute
   '/admin/brands': typeof AdminBrandsRoute
   '/admin/chat': typeof AdminChatRoute
+  '/admin/coupons': typeof AdminCouponsRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/incomplete': typeof AdminIncompleteRoute
   '/admin/orders': typeof AdminOrdersRoute
@@ -209,9 +223,11 @@ export interface FileRoutesByTo {
   '/checkout': typeof ShopCheckoutRoute
   '/contact': typeof ShopContactRoute
   '/login': typeof ShopLoginRoute
+  '/my-reviews': typeof ShopMyReviewsRoute
   '/track': typeof ShopTrackRoute
   '/admin/brands': typeof AdminBrandsRoute
   '/admin/chat': typeof AdminChatRoute
+  '/admin/coupons': typeof AdminCouponsRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/incomplete': typeof AdminIncompleteRoute
   '/admin/orders': typeof AdminOrdersRoute
@@ -239,9 +255,11 @@ export interface FileRoutesById {
   '/_shop/checkout': typeof ShopCheckoutRoute
   '/_shop/contact': typeof ShopContactRoute
   '/_shop/login': typeof ShopLoginRoute
+  '/_shop/my-reviews': typeof ShopMyReviewsRoute
   '/_shop/track': typeof ShopTrackRoute
   '/admin/brands': typeof AdminBrandsRoute
   '/admin/chat': typeof AdminChatRoute
+  '/admin/coupons': typeof AdminCouponsRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/incomplete': typeof AdminIncompleteRoute
   '/admin/orders': typeof AdminOrdersRoute
@@ -270,9 +288,11 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/contact'
     | '/login'
+    | '/my-reviews'
     | '/track'
     | '/admin/brands'
     | '/admin/chat'
+    | '/admin/coupons'
     | '/admin/customers'
     | '/admin/incomplete'
     | '/admin/orders'
@@ -296,9 +316,11 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/contact'
     | '/login'
+    | '/my-reviews'
     | '/track'
     | '/admin/brands'
     | '/admin/chat'
+    | '/admin/coupons'
     | '/admin/customers'
     | '/admin/incomplete'
     | '/admin/orders'
@@ -325,9 +347,11 @@ export interface FileRouteTypes {
     | '/_shop/checkout'
     | '/_shop/contact'
     | '/_shop/login'
+    | '/_shop/my-reviews'
     | '/_shop/track'
     | '/admin/brands'
     | '/admin/chat'
+    | '/admin/coupons'
     | '/admin/customers'
     | '/admin/incomplete'
     | '/admin/orders'
@@ -426,6 +450,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCustomersRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/coupons': {
+      id: '/admin/coupons'
+      path: '/coupons'
+      fullPath: '/admin/coupons'
+      preLoaderRoute: typeof AdminCouponsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/chat': {
       id: '/admin/chat'
       path: '/chat'
@@ -445,6 +476,13 @@ declare module '@tanstack/react-router' {
       path: '/track'
       fullPath: '/track'
       preLoaderRoute: typeof ShopTrackRouteImport
+      parentRoute: typeof ShopRoute
+    }
+    '/_shop/my-reviews': {
+      id: '/_shop/my-reviews'
+      path: '/my-reviews'
+      fullPath: '/my-reviews'
+      preLoaderRoute: typeof ShopMyReviewsRouteImport
       parentRoute: typeof ShopRoute
     }
     '/_shop/login': {
@@ -555,6 +593,7 @@ interface ShopRouteChildren {
   ShopCheckoutRoute: typeof ShopCheckoutRoute
   ShopContactRoute: typeof ShopContactRoute
   ShopLoginRoute: typeof ShopLoginRoute
+  ShopMyReviewsRoute: typeof ShopMyReviewsRoute
   ShopTrackRoute: typeof ShopTrackRoute
   ShopIndexRoute: typeof ShopIndexRoute
   ShopOrderIdRoute: typeof ShopOrderIdRoute
@@ -571,6 +610,7 @@ const ShopRouteChildren: ShopRouteChildren = {
   ShopCheckoutRoute: ShopCheckoutRoute,
   ShopContactRoute: ShopContactRoute,
   ShopLoginRoute: ShopLoginRoute,
+  ShopMyReviewsRoute: ShopMyReviewsRoute,
   ShopTrackRoute: ShopTrackRoute,
   ShopIndexRoute: ShopIndexRoute,
   ShopOrderIdRoute: ShopOrderIdRoute,
@@ -585,6 +625,7 @@ const ShopRouteWithChildren = ShopRoute._addFileChildren(ShopRouteChildren)
 interface AdminRouteChildren {
   AdminBrandsRoute: typeof AdminBrandsRoute
   AdminChatRoute: typeof AdminChatRoute
+  AdminCouponsRoute: typeof AdminCouponsRoute
   AdminCustomersRoute: typeof AdminCustomersRoute
   AdminIncompleteRoute: typeof AdminIncompleteRoute
   AdminOrdersRoute: typeof AdminOrdersRoute
@@ -597,6 +638,7 @@ interface AdminRouteChildren {
 const AdminRouteChildren: AdminRouteChildren = {
   AdminBrandsRoute: AdminBrandsRoute,
   AdminChatRoute: AdminChatRoute,
+  AdminCouponsRoute: AdminCouponsRoute,
   AdminCustomersRoute: AdminCustomersRoute,
   AdminIncompleteRoute: AdminIncompleteRoute,
   AdminOrdersRoute: AdminOrdersRoute,
