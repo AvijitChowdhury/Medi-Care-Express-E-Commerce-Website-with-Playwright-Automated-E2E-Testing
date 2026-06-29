@@ -28,6 +28,7 @@ import { Route as ShopCartRouteImport } from './routes/_shop/cart'
 import { Route as ShopAccountRouteImport } from './routes/_shop/account'
 import { Route as ShopAboutRouteImport } from './routes/_shop/about'
 import { Route as ShopProductsIndexRouteImport } from './routes/_shop/products/index'
+import { Route as ApiPublicFbCapiRouteImport } from './routes/api/public/fb-capi'
 import { Route as ShopProductsSlugRouteImport } from './routes/_shop/products/$slug'
 import { Route as ShopPolicyRefundRouteImport } from './routes/_shop/policy/refund'
 import { Route as ShopPolicyPrivacyRouteImport } from './routes/_shop/policy/privacy'
@@ -129,6 +130,11 @@ const ShopProductsIndexRoute = ShopProductsIndexRouteImport.update({
   path: '/products/',
   getParentRoute: () => ShopRoute,
 } as any)
+const ApiPublicFbCapiRoute = ApiPublicFbCapiRouteImport.update({
+  id: '/api/public/fb-capi',
+  path: '/api/public/fb-capi',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ShopProductsSlugRoute = ShopProductsSlugRouteImport.update({
   id: '/products/$slug',
   path: '/products/$slug',
@@ -184,6 +190,7 @@ export interface FileRoutesByFullPath {
   '/policy/privacy': typeof ShopPolicyPrivacyRoute
   '/policy/refund': typeof ShopPolicyRefundRoute
   '/products/$slug': typeof ShopProductsSlugRoute
+  '/api/public/fb-capi': typeof ApiPublicFbCapiRoute
   '/products/': typeof ShopProductsIndexRoute
   '/api/payment/uddoktapay/create': typeof ApiPaymentUddoktapayCreateRoute
   '/api/public/uddoktapay/callback': typeof ApiPublicUddoktapayCallbackRoute
@@ -209,6 +216,7 @@ export interface FileRoutesByTo {
   '/policy/privacy': typeof ShopPolicyPrivacyRoute
   '/policy/refund': typeof ShopPolicyRefundRoute
   '/products/$slug': typeof ShopProductsSlugRoute
+  '/api/public/fb-capi': typeof ApiPublicFbCapiRoute
   '/products': typeof ShopProductsIndexRoute
   '/api/payment/uddoktapay/create': typeof ApiPaymentUddoktapayCreateRoute
   '/api/public/uddoktapay/callback': typeof ApiPublicUddoktapayCallbackRoute
@@ -237,6 +245,7 @@ export interface FileRoutesById {
   '/_shop/policy/privacy': typeof ShopPolicyPrivacyRoute
   '/_shop/policy/refund': typeof ShopPolicyRefundRoute
   '/_shop/products/$slug': typeof ShopProductsSlugRoute
+  '/api/public/fb-capi': typeof ApiPublicFbCapiRoute
   '/_shop/products/': typeof ShopProductsIndexRoute
   '/api/payment/uddoktapay/create': typeof ApiPaymentUddoktapayCreateRoute
   '/api/public/uddoktapay/callback': typeof ApiPublicUddoktapayCallbackRoute
@@ -265,6 +274,7 @@ export interface FileRouteTypes {
     | '/policy/privacy'
     | '/policy/refund'
     | '/products/$slug'
+    | '/api/public/fb-capi'
     | '/products/'
     | '/api/payment/uddoktapay/create'
     | '/api/public/uddoktapay/callback'
@@ -290,6 +300,7 @@ export interface FileRouteTypes {
     | '/policy/privacy'
     | '/policy/refund'
     | '/products/$slug'
+    | '/api/public/fb-capi'
     | '/products'
     | '/api/payment/uddoktapay/create'
     | '/api/public/uddoktapay/callback'
@@ -317,6 +328,7 @@ export interface FileRouteTypes {
     | '/_shop/policy/privacy'
     | '/_shop/policy/refund'
     | '/_shop/products/$slug'
+    | '/api/public/fb-capi'
     | '/_shop/products/'
     | '/api/payment/uddoktapay/create'
     | '/api/public/uddoktapay/callback'
@@ -325,6 +337,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   ShopRoute: typeof ShopRouteWithChildren
   AdminRoute: typeof AdminRouteWithChildren
+  ApiPublicFbCapiRoute: typeof ApiPublicFbCapiRoute
   ApiPaymentUddoktapayCreateRoute: typeof ApiPaymentUddoktapayCreateRoute
   ApiPublicUddoktapayCallbackRoute: typeof ApiPublicUddoktapayCallbackRoute
 }
@@ -464,6 +477,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShopProductsIndexRouteImport
       parentRoute: typeof ShopRoute
     }
+    '/api/public/fb-capi': {
+      id: '/api/public/fb-capi'
+      path: '/api/public/fb-capi'
+      fullPath: '/api/public/fb-capi'
+      preLoaderRoute: typeof ApiPublicFbCapiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_shop/products/$slug': {
       id: '/_shop/products/$slug'
       path: '/products/$slug'
@@ -570,19 +590,10 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   ShopRoute: ShopRouteWithChildren,
   AdminRoute: AdminRouteWithChildren,
+  ApiPublicFbCapiRoute: ApiPublicFbCapiRoute,
   ApiPaymentUddoktapayCreateRoute: ApiPaymentUddoktapayCreateRoute,
   ApiPublicUddoktapayCallbackRoute: ApiPublicUddoktapayCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

@@ -9,6 +9,7 @@ import {
 } from "@tanstack/react-router";
 import { Toaster } from "@/components/ui/sonner";
 import appCss from "../styles.css?url";
+import { FB_PIXEL_BOOTSTRAP, FB_PIXEL_ID } from "@/lib/fb-pixel";
 
 function NotFoundComponent() {
   return (
@@ -78,6 +79,16 @@ function RootShell({ children }: { children: React.ReactNode }) {
     <html lang="bn">
       <head>
         <HeadContent />
+        <script dangerouslySetInnerHTML={{ __html: FB_PIXEL_BOOTSTRAP }} />
+        <noscript>
+          <img
+            height="1"
+            width="1"
+            style={{ display: "none" }}
+            alt=""
+            src={`https://www.facebook.com/tr?id=${FB_PIXEL_ID}&ev=PageView&noscript=1`}
+          />
+        </noscript>
       </head>
       <body>
         {children}

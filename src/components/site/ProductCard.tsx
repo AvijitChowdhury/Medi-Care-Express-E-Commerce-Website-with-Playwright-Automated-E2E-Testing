@@ -4,6 +4,7 @@ import { taka, toBnDigits } from "@/lib/format";
 import { Plus } from "lucide-react";
 import { useCart } from "@/lib/cart-store";
 import { toast } from "sonner";
+import { trackEvent } from "@/lib/fb-pixel";
 
 type P = {
   id: string;
