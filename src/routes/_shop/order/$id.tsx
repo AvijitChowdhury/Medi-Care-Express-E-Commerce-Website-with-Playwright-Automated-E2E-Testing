@@ -2,8 +2,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { taka, toBnDigits } from "@/lib/format";
-import { Download, CheckCircle2 } from "lucide-react";
+import { Download, CheckCircle2, AlertCircle, RotateCw } from "lucide-react";
 import jsPDF from "jspdf";
+import { useState } from "react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_shop/order/$id")({
   head: () => ({ meta: [{ title: "অর্ডার বিবরণী — মেডিকেয়ার" }] }),
@@ -12,7 +14,8 @@ export const Route = createFileRoute("/_shop/order/$id")({
 
 function OrderPage() {
   const { id } = Route.useParams();
-  const { data, isLoading } = useQuery({
+  const [retrying, setRetrying] = useState(false);
+  const { data, isLoading, refetch } = useQuery({
     queryKey: ["order", id],
     queryFn: async () => {
       const { data: order } = await supabase.from("orders").select("*").eq("id", id).maybeSingle();
