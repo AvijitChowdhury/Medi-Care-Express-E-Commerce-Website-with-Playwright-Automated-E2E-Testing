@@ -305,6 +305,10 @@ export type Database = {
           subtotal: number
           total: number
           uddoktapay_invoice_id: string | null
+          uddoktapay_payment_method: string | null
+          uddoktapay_raw: Json | null
+          uddoktapay_sender_number: string | null
+          uddoktapay_transaction_id: string | null
           updated_at: string
           user_id: string | null
         }
@@ -329,6 +333,10 @@ export type Database = {
           subtotal: number
           total: number
           uddoktapay_invoice_id?: string | null
+          uddoktapay_payment_method?: string | null
+          uddoktapay_raw?: Json | null
+          uddoktapay_sender_number?: string | null
+          uddoktapay_transaction_id?: string | null
           updated_at?: string
           user_id?: string | null
         }
@@ -353,6 +361,10 @@ export type Database = {
           subtotal?: number
           total?: number
           uddoktapay_invoice_id?: string | null
+          uddoktapay_payment_method?: string | null
+          uddoktapay_raw?: Json | null
+          uddoktapay_sender_number?: string | null
+          uddoktapay_transaction_id?: string | null
           updated_at?: string
           user_id?: string | null
         }
