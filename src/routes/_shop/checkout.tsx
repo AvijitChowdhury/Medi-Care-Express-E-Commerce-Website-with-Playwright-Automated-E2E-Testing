@@ -123,6 +123,17 @@ function Checkout() {
       toast.error("সব তথ্য পূরণ করুন");
       return;
     }
+    // Optional fraud check (admin-controlled via site_settings.fraud_auto_check_checkout)
+    try {
+      const { data: s } = await supabase.from("site_settings").select("fraud_check_enabled, fraud_auto_check_checkout").eq("id", 1).maybeSingle();
+      if (s?.fraud_check_enabled && s?.fraud_auto_check_checkout) {
+        const fr: any = await checkFraudCached(form.phone);
+        if (fr?.ok && fr.risk_level === "high") {
+          const ok = confirm(`⚠️ এই নম্বরে পূর্বের কুরিয়ার ইতিহাসে ঝুঁকি পাওয়া গেছে (সফলতা ${fr.success_ratio}%).\nতবুও অর্ডার চালিয়ে যাবেন?`);
+          if (!ok) return;
+        }
+      }
+    } catch {}
     setLoading(true);
     trackEvent("InitiateCheckout", {
       content_ids: items.map((i) => i.productId),
