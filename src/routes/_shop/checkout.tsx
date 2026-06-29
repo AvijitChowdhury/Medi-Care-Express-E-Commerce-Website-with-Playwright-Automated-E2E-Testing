@@ -149,6 +149,12 @@ function Checkout() {
         localStorage.removeItem("medi-checkout-token");
       }
 
+      // Save guest order token so the order page can read it back via RLS
+      if (!userData.user && (order as any).access_token) {
+        try { localStorage.setItem(`medi-order-token-${order.id}`, (order as any).access_token); } catch {}
+      }
+
+
       if (form.payment === "partial_online") {
         toast.info("পেমেন্ট পেজে নিয়ে যাওয়া হচ্ছে...");
         const res = await fetch("/api/payment/uddoktapay/create", {

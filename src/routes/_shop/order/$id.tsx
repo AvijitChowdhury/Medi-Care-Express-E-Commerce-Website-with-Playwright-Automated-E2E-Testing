@@ -18,11 +18,26 @@ function OrderPage() {
   const { data, isLoading } = useQuery({
     queryKey: ["order", id],
     queryFn: async () => {
-      const { data: order } = await supabase.from("orders").select("*").eq("id", id).maybeSingle();
-      const { data: itemsData } = await supabase.from("order_items").select("*").eq("order_id", id);
-      return { order, items: itemsData ?? [] };
+      const { data: userData } = await supabase.auth.getUser();
+      const guestToken = !userData.user ? (typeof window !== "undefined" ? localStorage.getItem(`medi-order-token-${id}`) : null) : null;
+      const url = import.meta.env.VITE_SUPABASE_URL as string;
+      const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
+      const headers: Record<string, string> = { apikey: key, Authorization: `Bearer ${key}` };
+      if (guestToken) headers["x-order-token"] = guestToken;
+      else {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) headers.Authorization = `Bearer ${session.access_token}`;
+      }
+      const [oRes, iRes] = await Promise.all([
+        fetch(`${url}/rest/v1/orders?id=eq.${id}&select=*`, { headers }),
+        fetch(`${url}/rest/v1/order_items?order_id=eq.${id}&select=*`, { headers }),
+      ]);
+      const orderArr = await oRes.json();
+      const itemsArr = await iRes.json();
+      return { order: Array.isArray(orderArr) ? orderArr[0] : null, items: Array.isArray(itemsArr) ? itemsArr : [] };
     },
   });
+
 
   if (isLoading) return <div className="container mx-auto px-4 py-20 text-center text-muted-foreground">লোড হচ্ছে...</div>;
   if (!data?.order) return <div className="container mx-auto px-4 py-20 text-center">অর্ডার পাওয়া যায়নি।</div>;
