@@ -51,13 +51,46 @@ function OrderPage() {
     doc.save(`invoice-${shortId}.pdf`);
   };
 
+  const needsPayment = o.payment_method === "partial_online" && o.payment_status !== "paid" && o.payment_status !== "partial";
+  const retryPayment = async () => {
+    setRetrying(true);
+    try {
+      const res = await fetch("/api/payment/uddoktapay/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ order_id: o.id }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.payment_url) throw new Error(json.error || "পেমেন্ট সংযোগ ব্যর্থ");
+      window.location.href = json.payment_url;
+    } catch (e: any) {
+      toast.error(e.message || "পেমেন্ট সংযোগ ব্যর্থ");
+      setRetrying(false);
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-8 md:py-12 max-w-3xl">
       <div className="bg-card border border-border rounded-2xl p-8 text-center">
-        <CheckCircle2 className="h-14 w-14 mx-auto text-primary" />
-        <h1 className="mt-4 text-2xl font-semibold">ধন্যবাদ! অর্ডার নিশ্চিত হয়েছে</h1>
-        <p className="mt-2 text-sm text-muted-foreground">আপনার অর্ডার নম্বর <span className="font-mono font-semibold text-foreground">#{shortId}</span></p>
+        {needsPayment ? (
+          <>
+            <AlertCircle className="h-14 w-14 mx-auto text-amber-500" />
+            <h1 className="mt-4 text-2xl font-semibold">পেমেন্ট অসম্পূর্ণ</h1>
+            <p className="mt-2 text-sm text-muted-foreground">অর্ডার নম্বর <span className="font-mono font-semibold text-foreground">#{shortId}</span> এর পেমেন্ট সম্পন্ন হয়নি। আবার চেষ্টা করুন।</p>
+          </>
+        ) : (
+          <>
+            <CheckCircle2 className="h-14 w-14 mx-auto text-primary" />
+            <h1 className="mt-4 text-2xl font-semibold">ধন্যবাদ! অর্ডার নিশ্চিত হয়েছে</h1>
+            <p className="mt-2 text-sm text-muted-foreground">আপনার অর্ডার নম্বর <span className="font-mono font-semibold text-foreground">#{shortId}</span></p>
+          </>
+        )}
         <div className="mt-6 flex justify-center gap-3 flex-wrap">
+          {needsPayment && (
+            <button disabled={retrying} onClick={retryPayment} className="h-11 px-5 rounded-md bg-amber-500 hover:bg-amber-600 text-white text-sm inline-flex items-center gap-2 disabled:opacity-60">
+              <RotateCw className={`h-4 w-4 ${retrying ? "animate-spin" : ""}`} /> {retrying ? "প্রসেস হচ্ছে..." : "পেমেন্ট আবার চেষ্টা করুন"}
+            </button>
+          )}
           <button onClick={downloadInvoice} className="h-11 px-5 rounded-md bg-primary text-primary-foreground text-sm inline-flex items-center gap-2">
             <Download className="h-4 w-4" /> ইনভয়েস ডাউনলোড
           </button>
@@ -78,8 +111,22 @@ function OrderPage() {
         <div className="mt-4 pt-4 border-t border-border space-y-2 text-sm">
           <div className="flex justify-between"><span className="text-muted-foreground">সাবটোটাল</span><span>{taka(o.subtotal)}</span></div>
           <div className="flex justify-between"><span className="text-muted-foreground">শিপিং</span><span>{taka(o.delivery_fee)}</span></div>
+          {Number(o.paid_amount) > 0 && (
+            <div className="flex justify-between text-emerald-600"><span>অগ্রিম পরিশোধিত</span><span>− {taka(o.paid_amount)}</span></div>
+          )}
           <div className="flex justify-between font-semibold pt-2 border-t border-border"><span>মোট</span><span className="text-primary">{taka(o.total)}</span></div>
+          {Number(o.due_amount) > 0 && (
+            <div className="flex justify-between text-amber-600 font-medium"><span>বাকি (ডেলিভারিতে)</span><span>{taka(o.due_amount)}</span></div>
+          )}
         </div>
+        {(o.uddoktapay_transaction_id || o.uddoktapay_invoice_id) && (
+          <div className="mt-5 pt-4 border-t border-border text-xs text-muted-foreground space-y-1">
+            <div className="font-semibold text-foreground mb-1">পেমেন্ট তথ্য</div>
+            {o.uddoktapay_payment_method && <div>মাধ্যম: <span className="text-foreground">{o.uddoktapay_payment_method}</span></div>}
+            {o.uddoktapay_transaction_id && <div>ট্রানজেকশন ID: <span className="font-mono text-foreground">{o.uddoktapay_transaction_id}</span></div>}
+            {o.uddoktapay_sender_number && <div>প্রেরক নম্বর: <span className="font-mono text-foreground">{o.uddoktapay_sender_number}</span></div>}
+          </div>
+        )}
       </div>
     </div>
   );
