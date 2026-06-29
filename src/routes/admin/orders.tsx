@@ -502,3 +502,17 @@ const inp = "w-full h-10 px-3 rounded-md border border-input bg-background text-
 function F({ label, children, full }: any) {
   return <label className={`block ${full ? "md:col-span-2" : ""}`}><span className="text-xs font-medium block mb-1.5">{label}</span>{children}</label>;
 }
+
+function FraudPill({ o }: { o: any }) {
+  if (!o.fraud_risk_level) return null;
+  const c = riskColor(o.fraud_risk_level);
+  const Icon = o.fraud_risk_level === "high" ? ShieldAlert : o.fraud_risk_level === "low" ? ShieldCheck : Shield;
+  return (
+    <span
+      title={`ফ্রড: ${c.label} · মোট ${o.fraud_total_orders ?? 0} · বাতিল ${o.fraud_total_cancelled ?? 0} · সফল ${o.fraud_success_ratio ?? 0}%`}
+      className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-medium ${c.bg} ${c.text}`}
+    >
+      <Icon className="h-3 w-3" /> {c.label}
+    </span>
+  );
+}
