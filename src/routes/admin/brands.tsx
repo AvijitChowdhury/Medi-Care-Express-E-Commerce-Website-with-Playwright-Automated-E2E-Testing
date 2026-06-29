@@ -143,7 +143,7 @@ function BrandsPage() {
                       <button onClick={() => openEdit(b)} className="inline-flex items-center gap-1 h-8 px-3 rounded-md border border-border text-xs hover:bg-muted">
                         <Pencil className="h-3.5 w-3.5" /> সম্পাদনা
                       </button>
-                      <button onClick={() => remove(b)} className="inline-flex items-center gap-1 h-8 px-3 rounded-md border border-destructive/30 text-destructive text-xs hover:bg-destructive/10">
+                      <button onClick={() => openDelete(b)} className="inline-flex items-center gap-1 h-8 px-3 rounded-md border border-destructive/30 text-destructive text-xs hover:bg-destructive/10">
                         <Trash2 className="h-3.5 w-3.5" /> মুছুন
                       </button>
                     </div>
