@@ -118,6 +118,36 @@ function Orders() {
     qc.invalidateQueries({ queryKey: ["admin"] });
   };
 
+  const [sfBusy, setSfBusy] = useState(false);
+  const sendOneSteadfast = async (id: string) => {
+    setSfBusy(true);
+    try {
+      const r: any = await sendOne({ data: { order_id: id } });
+      if (r?.already) toast.info("এই অর্ডার আগেই Steadfast-এ পাঠানো হয়েছে");
+      else toast.success(`Steadfast-এ পাঠানো হয়েছে (${r?.tracking_code ?? ""})`);
+      qc.invalidateQueries({ queryKey: ["admin"] });
+    } catch (e: any) { toast.error(e?.message || "ব্যর্থ"); } finally { setSfBusy(false); }
+  };
+  const bulkSteadfast = async () => {
+    if (selected.size === 0) return;
+    if (!confirm(`${toBnDigits(selected.size)}টি অর্ডার Steadfast-এ পাঠাবেন?`)) return;
+    setSfBusy(true);
+    try {
+      const r: any = await sendBulk({ data: { order_ids: Array.from(selected) } });
+      toast.success(`পাঠানো: ${toBnDigits(r?.sent ?? 0)}, ব্যর্থ: ${toBnDigits(r?.failed ?? 0)}`);
+      setSelected(new Set());
+      qc.invalidateQueries({ queryKey: ["admin"] });
+    } catch (e: any) { toast.error(e?.message || "ব্যর্থ"); } finally { setSfBusy(false); }
+  };
+  const runSync = async () => {
+    setSfBusy(true);
+    try {
+      const r: any = await syncAll({});
+      toast.success(`চেক: ${toBnDigits(r?.checked ?? 0)}, আপডেট: ${toBnDigits(r?.updated ?? 0)}`);
+      qc.invalidateQueries({ queryKey: ["admin"] });
+    } catch (e: any) { toast.error(e?.message || "ব্যর্থ"); } finally { setSfBusy(false); }
+  };
+
   return (
     <div className="p-4 md:p-8 space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
