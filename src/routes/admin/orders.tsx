@@ -4,8 +4,10 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { taka, toBnDigits } from "@/lib/format";
 import { useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, Truck, RefreshCw } from "lucide-react";
+import { ChevronLeft, ChevronRight, Truck, RefreshCw, ShieldAlert, ShieldCheck, Shield } from "lucide-react";
 import { sendOrderToSteadfast, sendOrdersBulkToSteadfast, syncSteadfastStatuses } from "@/lib/steadfast.functions";
+import { attachFraudToOrder } from "@/lib/fraud.functions";
+import { checkFraudCached, riskColor } from "@/lib/fraud-client";
 
 const PAGE_SIZE = 20;
 import { toast } from "sonner";
