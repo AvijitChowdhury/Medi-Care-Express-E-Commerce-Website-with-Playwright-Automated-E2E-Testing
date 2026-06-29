@@ -126,19 +126,19 @@ function Orders() {
 
       <div className="flex gap-2 flex-wrap items-center">
         <div className="inline-flex rounded-full border border-border overflow-hidden">
-          <button onClick={() => { setView("active"); setSelected(new Set()); }} className={`h-9 px-4 text-xs ${view === "active" ? "bg-foreground text-background" : ""}`}>সক্রিয়</button>
-          <button onClick={() => { setView("trash"); setSelected(new Set()); }} className={`h-9 px-4 text-xs inline-flex items-center gap-1 ${view === "trash" ? "bg-foreground text-background" : ""}`}><Trash2 className="h-3 w-3" /> ট্র্যাশ</button>
+          <button onClick={() => { setView("active"); setSelected(new Set()); setPage(1); }} className={`h-9 px-4 text-xs ${view === "active" ? "bg-foreground text-background" : ""}`}>সক্রিয়</button>
+          <button onClick={() => { setView("trash"); setSelected(new Set()); setPage(1); }} className={`h-9 px-4 text-xs inline-flex items-center gap-1 ${view === "trash" ? "bg-foreground text-background" : ""}`}><Trash2 className="h-3 w-3" /> ট্র্যাশ</button>
         </div>
         <div className="w-px h-6 bg-border mx-1" />
         {["all", "complete", "incomplete"].map((c) => (
-          <button key={c} onClick={() => setComplete(c)} className={`h-9 px-4 rounded-full text-xs border ${complete === c ? "bg-foreground text-background border-foreground" : "border-border"}`}>
+          <button key={c} onClick={() => { setComplete(c); setPage(1); }} className={`h-9 px-4 rounded-full text-xs border ${complete === c ? "bg-foreground text-background border-foreground" : "border-border"}`}>
             {c === "all" ? "সব" : c === "complete" ? "সম্পন্ন" : "অসম্পূর্ণ"}
           </button>
         ))}
         <div className="w-px h-6 bg-border mx-1" />
-        <button onClick={() => setStatus("all")} className={`h-9 px-4 rounded-full text-xs border ${status === "all" ? "bg-primary text-primary-foreground border-primary" : "border-border"}`}>সব স্ট্যাটাস</button>
+        <button onClick={() => { setStatus("all"); setPage(1); }} className={`h-9 px-4 rounded-full text-xs border ${status === "all" ? "bg-primary text-primary-foreground border-primary" : "border-border"}`}>সব স্ট্যাটাস</button>
         {STATUSES.map((s) => (
-          <button key={s} onClick={() => setStatus(s)} className={`h-9 px-4 rounded-full text-xs border ${status === s ? "bg-primary text-primary-foreground border-primary" : "border-border"}`}>
+          <button key={s} onClick={() => { setStatus(s); setPage(1); }} className={`h-9 px-4 rounded-full text-xs border ${status === s ? "bg-primary text-primary-foreground border-primary" : "border-border"}`}>
             {STATUS_LABELS[s]}
           </button>
         ))}
