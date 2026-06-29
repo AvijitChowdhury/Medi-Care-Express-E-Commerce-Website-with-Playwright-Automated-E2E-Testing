@@ -19,6 +19,7 @@ import { Route as AdminProductsRouteImport } from './routes/admin/products'
 import { Route as AdminOrdersRouteImport } from './routes/admin/orders'
 import { Route as AdminIncompleteRouteImport } from './routes/admin/incomplete'
 import { Route as AdminCustomersRouteImport } from './routes/admin/customers'
+import { Route as AdminCouponsRouteImport } from './routes/admin/coupons'
 import { Route as AdminChatRouteImport } from './routes/admin/chat'
 import { Route as AdminBrandsRouteImport } from './routes/admin/brands'
 import { Route as ShopTrackRouteImport } from './routes/_shop/track'
@@ -34,6 +35,7 @@ import { Route as ShopProductsSlugRouteImport } from './routes/_shop/products/$s
 import { Route as ShopPolicyRefundRouteImport } from './routes/_shop/policy/refund'
 import { Route as ShopPolicyPrivacyRouteImport } from './routes/_shop/policy/privacy'
 import { Route as ShopOrderIdRouteImport } from './routes/_shop/order/$id'
+import { Route as ShopAccountReviewsRouteImport } from './routes/_shop/account/reviews'
 import { Route as ApiPublicUddoktapayCallbackRouteImport } from './routes/api/public/uddoktapay/callback'
 import { Route as ApiPaymentUddoktapayCreateRouteImport } from './routes/api/payment/uddoktapay/create'
 
@@ -84,6 +86,11 @@ const AdminIncompleteRoute = AdminIncompleteRouteImport.update({
 const AdminCustomersRoute = AdminCustomersRouteImport.update({
   id: '/customers',
   path: '/customers',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCouponsRoute = AdminCouponsRouteImport.update({
+  id: '/coupons',
+  path: '/coupons',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminChatRoute = AdminChatRouteImport.update({
@@ -161,6 +168,11 @@ const ShopOrderIdRoute = ShopOrderIdRouteImport.update({
   path: '/order/$id',
   getParentRoute: () => ShopRoute,
 } as any)
+const ShopAccountReviewsRoute = ShopAccountReviewsRouteImport.update({
+  id: '/reviews',
+  path: '/reviews',
+  getParentRoute: () => ShopAccountRoute,
+} as any)
 const ApiPublicUddoktapayCallbackRoute =
   ApiPublicUddoktapayCallbackRouteImport.update({
     id: '/api/public/uddoktapay/callback',
@@ -178,7 +190,7 @@ export interface FileRoutesByFullPath {
   '/': typeof ShopIndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/about': typeof ShopAboutRoute
-  '/account': typeof ShopAccountRoute
+  '/account': typeof ShopAccountRouteWithChildren
   '/cart': typeof ShopCartRoute
   '/checkout': typeof ShopCheckoutRoute
   '/contact': typeof ShopContactRoute
@@ -186,6 +198,7 @@ export interface FileRoutesByFullPath {
   '/track': typeof ShopTrackRoute
   '/admin/brands': typeof AdminBrandsRoute
   '/admin/chat': typeof AdminChatRoute
+  '/admin/coupons': typeof AdminCouponsRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/incomplete': typeof AdminIncompleteRoute
   '/admin/orders': typeof AdminOrdersRoute
@@ -193,6 +206,7 @@ export interface FileRoutesByFullPath {
   '/admin/recovery': typeof AdminRecoveryRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/': typeof AdminIndexRoute
+  '/account/reviews': typeof ShopAccountReviewsRoute
   '/order/$id': typeof ShopOrderIdRoute
   '/policy/privacy': typeof ShopPolicyPrivacyRoute
   '/policy/refund': typeof ShopPolicyRefundRoute
@@ -204,7 +218,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/about': typeof ShopAboutRoute
-  '/account': typeof ShopAccountRoute
+  '/account': typeof ShopAccountRouteWithChildren
   '/cart': typeof ShopCartRoute
   '/checkout': typeof ShopCheckoutRoute
   '/contact': typeof ShopContactRoute
@@ -212,6 +226,7 @@ export interface FileRoutesByTo {
   '/track': typeof ShopTrackRoute
   '/admin/brands': typeof AdminBrandsRoute
   '/admin/chat': typeof AdminChatRoute
+  '/admin/coupons': typeof AdminCouponsRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/incomplete': typeof AdminIncompleteRoute
   '/admin/orders': typeof AdminOrdersRoute
@@ -220,6 +235,7 @@ export interface FileRoutesByTo {
   '/admin/settings': typeof AdminSettingsRoute
   '/': typeof ShopIndexRoute
   '/admin': typeof AdminIndexRoute
+  '/account/reviews': typeof ShopAccountReviewsRoute
   '/order/$id': typeof ShopOrderIdRoute
   '/policy/privacy': typeof ShopPolicyPrivacyRoute
   '/policy/refund': typeof ShopPolicyRefundRoute
@@ -234,7 +250,7 @@ export interface FileRoutesById {
   '/_shop': typeof ShopRouteWithChildren
   '/admin': typeof AdminRouteWithChildren
   '/_shop/about': typeof ShopAboutRoute
-  '/_shop/account': typeof ShopAccountRoute
+  '/_shop/account': typeof ShopAccountRouteWithChildren
   '/_shop/cart': typeof ShopCartRoute
   '/_shop/checkout': typeof ShopCheckoutRoute
   '/_shop/contact': typeof ShopContactRoute
@@ -242,6 +258,7 @@ export interface FileRoutesById {
   '/_shop/track': typeof ShopTrackRoute
   '/admin/brands': typeof AdminBrandsRoute
   '/admin/chat': typeof AdminChatRoute
+  '/admin/coupons': typeof AdminCouponsRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/incomplete': typeof AdminIncompleteRoute
   '/admin/orders': typeof AdminOrdersRoute
@@ -250,6 +267,7 @@ export interface FileRoutesById {
   '/admin/settings': typeof AdminSettingsRoute
   '/_shop/': typeof ShopIndexRoute
   '/admin/': typeof AdminIndexRoute
+  '/_shop/account/reviews': typeof ShopAccountReviewsRoute
   '/_shop/order/$id': typeof ShopOrderIdRoute
   '/_shop/policy/privacy': typeof ShopPolicyPrivacyRoute
   '/_shop/policy/refund': typeof ShopPolicyRefundRoute
@@ -273,6 +291,7 @@ export interface FileRouteTypes {
     | '/track'
     | '/admin/brands'
     | '/admin/chat'
+    | '/admin/coupons'
     | '/admin/customers'
     | '/admin/incomplete'
     | '/admin/orders'
@@ -280,6 +299,7 @@ export interface FileRouteTypes {
     | '/admin/recovery'
     | '/admin/settings'
     | '/admin/'
+    | '/account/reviews'
     | '/order/$id'
     | '/policy/privacy'
     | '/policy/refund'
@@ -299,6 +319,7 @@ export interface FileRouteTypes {
     | '/track'
     | '/admin/brands'
     | '/admin/chat'
+    | '/admin/coupons'
     | '/admin/customers'
     | '/admin/incomplete'
     | '/admin/orders'
@@ -307,6 +328,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/'
     | '/admin'
+    | '/account/reviews'
     | '/order/$id'
     | '/policy/privacy'
     | '/policy/refund'
@@ -328,6 +350,7 @@ export interface FileRouteTypes {
     | '/_shop/track'
     | '/admin/brands'
     | '/admin/chat'
+    | '/admin/coupons'
     | '/admin/customers'
     | '/admin/incomplete'
     | '/admin/orders'
@@ -336,6 +359,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/_shop/'
     | '/admin/'
+    | '/_shop/account/reviews'
     | '/_shop/order/$id'
     | '/_shop/policy/privacy'
     | '/_shop/policy/refund'
@@ -424,6 +448,13 @@ declare module '@tanstack/react-router' {
       path: '/customers'
       fullPath: '/admin/customers'
       preLoaderRoute: typeof AdminCustomersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/coupons': {
+      id: '/admin/coupons'
+      path: '/coupons'
+      fullPath: '/admin/coupons'
+      preLoaderRoute: typeof AdminCouponsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/chat': {
@@ -531,6 +562,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShopOrderIdRouteImport
       parentRoute: typeof ShopRoute
     }
+    '/_shop/account/reviews': {
+      id: '/_shop/account/reviews'
+      path: '/reviews'
+      fullPath: '/account/reviews'
+      preLoaderRoute: typeof ShopAccountReviewsRouteImport
+      parentRoute: typeof ShopAccountRoute
+    }
     '/api/public/uddoktapay/callback': {
       id: '/api/public/uddoktapay/callback'
       path: '/api/public/uddoktapay/callback'
@@ -548,9 +586,21 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface ShopAccountRouteChildren {
+  ShopAccountReviewsRoute: typeof ShopAccountReviewsRoute
+}
+
+const ShopAccountRouteChildren: ShopAccountRouteChildren = {
+  ShopAccountReviewsRoute: ShopAccountReviewsRoute,
+}
+
+const ShopAccountRouteWithChildren = ShopAccountRoute._addFileChildren(
+  ShopAccountRouteChildren,
+)
+
 interface ShopRouteChildren {
   ShopAboutRoute: typeof ShopAboutRoute
-  ShopAccountRoute: typeof ShopAccountRoute
+  ShopAccountRoute: typeof ShopAccountRouteWithChildren
   ShopCartRoute: typeof ShopCartRoute
   ShopCheckoutRoute: typeof ShopCheckoutRoute
   ShopContactRoute: typeof ShopContactRoute
@@ -566,7 +616,7 @@ interface ShopRouteChildren {
 
 const ShopRouteChildren: ShopRouteChildren = {
   ShopAboutRoute: ShopAboutRoute,
-  ShopAccountRoute: ShopAccountRoute,
+  ShopAccountRoute: ShopAccountRouteWithChildren,
   ShopCartRoute: ShopCartRoute,
   ShopCheckoutRoute: ShopCheckoutRoute,
   ShopContactRoute: ShopContactRoute,
@@ -585,6 +635,7 @@ const ShopRouteWithChildren = ShopRoute._addFileChildren(ShopRouteChildren)
 interface AdminRouteChildren {
   AdminBrandsRoute: typeof AdminBrandsRoute
   AdminChatRoute: typeof AdminChatRoute
+  AdminCouponsRoute: typeof AdminCouponsRoute
   AdminCustomersRoute: typeof AdminCustomersRoute
   AdminIncompleteRoute: typeof AdminIncompleteRoute
   AdminOrdersRoute: typeof AdminOrdersRoute
@@ -597,6 +648,7 @@ interface AdminRouteChildren {
 const AdminRouteChildren: AdminRouteChildren = {
   AdminBrandsRoute: AdminBrandsRoute,
   AdminChatRoute: AdminChatRoute,
+  AdminCouponsRoute: AdminCouponsRoute,
   AdminCustomersRoute: AdminCustomersRoute,
   AdminIncompleteRoute: AdminIncompleteRoute,
   AdminOrdersRoute: AdminOrdersRoute,
