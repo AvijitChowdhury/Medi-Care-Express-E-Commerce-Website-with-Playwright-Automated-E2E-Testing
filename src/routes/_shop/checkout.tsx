@@ -149,6 +149,22 @@ function Checkout() {
         localStorage.removeItem("medi-checkout-token");
       }
 
+      if (form.payment === "partial_online") {
+        toast.info("পেমেন্ট পেজে নিয়ে যাওয়া হচ্ছে...");
+        const res = await fetch("/api/payment/uddoktapay/create", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ order_id: order.id }),
+        });
+        const json = await res.json();
+        if (!res.ok || !json.payment_url) {
+          throw new Error(json.error || "পেমেন্ট গেটওয়ে সংযোগ ব্যর্থ");
+        }
+        clear();
+        window.location.href = json.payment_url;
+        return;
+      }
+
       clear();
       toast.success("অর্ডার সফলভাবে দেওয়া হয়েছে");
       navigate({ to: "/order/$id", params: { id: order.id } });
