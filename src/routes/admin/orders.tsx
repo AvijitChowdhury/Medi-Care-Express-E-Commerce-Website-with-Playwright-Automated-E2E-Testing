@@ -48,14 +48,32 @@ function Orders() {
   const [status, setStatus] = useState("all");
   const [complete, setComplete] = useState("all");
   const [view, setView] = useState<"active" | "trash">("active");
+  const [page, setPage] = useState(1);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [showManual, setShowManual] = useState(false);
-  const { data, isLoading } = useQuery({ queryKey: ["admin", "orders", status, complete, view], queryFn: () => fetchOrders(status, complete, view) });
+  const { data, isLoading } = useQuery({
+    queryKey: ["admin", "orders", status, complete, view, page],
+    queryFn: () => fetchOrders(status, complete, view, page),
+  });
+  const rows = data?.rows ?? [];
+  const total = data?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
-  const allSelected = useMemo(() => (data?.length ?? 0) > 0 && data?.every((o: any) => selected.has(o.id)), [data, selected]);
+  // page-level select-all state (selected is persistent across pages)
+  const pageAllSelected = useMemo(() => rows.length > 0 && rows.every((o: any) => selected.has(o.id)), [rows, selected]);
   const toggle = (id: string) => { const s = new Set(selected); s.has(id) ? s.delete(id) : s.add(id); setSelected(s); };
-  const toggleAll = () => { if (!data) return; setSelected(allSelected ? new Set() : new Set(data.map((o: any) => o.id))); };
+  const togglePage = () => {
+    const s = new Set(selected);
+    if (pageAllSelected) rows.forEach((o: any) => s.delete(o.id));
+    else rows.forEach((o: any) => s.add(o.id));
+    setSelected(s);
+  };
+  const selectAllMatching = async () => {
+    const ids = await fetchAllIds(status, complete, view);
+    setSelected(new Set(ids));
+    toast.success(`${toBnDigits(ids.length)}টি অর্ডার নির্বাচিত`);
+  };
 
   const updateStatus = async (id: string, newStatus: string) => {
     const { error } = await supabase.from("orders").update({ status: newStatus as any }).eq("id", id);
