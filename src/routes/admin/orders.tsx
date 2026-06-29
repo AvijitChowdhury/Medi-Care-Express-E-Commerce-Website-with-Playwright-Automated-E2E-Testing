@@ -90,12 +90,27 @@ function Orders() {
                     </div>
                   </div>
                   {isOpen && (
-                    <div className="bg-muted/30 p-4 grid md:grid-cols-2 gap-4 text-xs">
+                    <div className="bg-muted/30 p-4 grid md:grid-cols-3 gap-4 text-xs">
                       <div>
                         <div className="font-semibold mb-2">শিপিং</div>
                         <div>{o.shipping_address}, {o.shipping_city} ({o.shipping_area})</div>
-                        <div className="mt-2 text-muted-foreground">পেমেন্ট: {o.payment_method} ({o.payment_status})</div>
+                        {o.customer_email && <div className="mt-1 text-muted-foreground">{o.customer_email}</div>}
                         {o.notes && <div className="mt-2"><span className="font-medium">নোট:</span> {o.notes}</div>}
+                      </div>
+                      <div>
+                        <div className="font-semibold mb-2">পেমেন্ট</div>
+                        <div>মাধ্যম: <span className="font-medium">{o.payment_method === "cod" ? "ক্যাশ অন ডেলিভারি" : "অনলাইন (আংশিক)"}</span></div>
+                        <div>স্ট্যাটাস: <span className={`font-medium ${o.payment_status === "paid" ? "text-emerald-600" : o.payment_status === "partial" ? "text-blue-600" : "text-amber-600"}`}>{o.payment_status}</span></div>
+                        <div className="mt-1">পরিশোধিত: <span className="font-medium">{taka(o.paid_amount || 0)}</span></div>
+                        <div>বাকি: <span className="font-medium">{taka(o.due_amount || 0)}</span></div>
+                        {(o.uddoktapay_transaction_id || o.uddoktapay_invoice_id) && (
+                          <div className="mt-2 pt-2 border-t border-border space-y-0.5">
+                            {o.uddoktapay_payment_method && <div>গেটওয়ে: <span className="font-medium">{o.uddoktapay_payment_method}</span></div>}
+                            {o.uddoktapay_transaction_id && <div>TxID: <span className="font-mono">{o.uddoktapay_transaction_id}</span></div>}
+                            {o.uddoktapay_sender_number && <div>প্রেরক: <span className="font-mono">{o.uddoktapay_sender_number}</span></div>}
+                            {o.uddoktapay_invoice_id && <div className="text-muted-foreground">Inv: <span className="font-mono">{o.uddoktapay_invoice_id}</span></div>}
+                          </div>
+                        )}
                       </div>
                       <div>
                         <div className="font-semibold mb-2">পণ্য ({toBnDigits(o.order_items?.length ?? 0)})</div>
