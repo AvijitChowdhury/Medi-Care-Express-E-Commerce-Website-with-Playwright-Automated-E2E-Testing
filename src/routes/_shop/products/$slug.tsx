@@ -3,10 +3,11 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchProductBySlug } from "@/lib/queries";
 import { img } from "@/lib/images";
 import { taka, toBnDigits } from "@/lib/format";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Minus, Plus, ShoppingBag, ShieldCheck, Truck, RotateCcw, Star } from "lucide-react";
 import { useCart } from "@/lib/cart-store";
 import { toast } from "sonner";
+import { trackEvent } from "@/lib/fb-pixel";
 
 export const Route = createFileRoute("/_shop/products/$slug")({
   component: ProductDetail,
@@ -22,6 +23,21 @@ function ProductDetail() {
     queryKey: ["product", slug],
     queryFn: () => fetchProductBySlug(slug),
   });
+
+  const firedRef = useRef<string | null>(null);
+  useEffect(() => {
+    const p = data?.product;
+    if (!p || firedRef.current === p.id) return;
+    firedRef.current = p.id;
+    trackEvent("ViewContent", {
+      content_ids: [p.id],
+      content_name: p.name_bn,
+      content_type: "product",
+      content_category: (p as any).categories?.name_bn,
+      value: Number(p.price),
+      currency: "BDT",
+    });
+  }, [data]);
 
   if (isLoading) return <div className="container mx-auto px-4 py-20 text-center text-muted-foreground">লোড হচ্ছে...</div>;
   if (!data) return <div className="container mx-auto px-4 py-20 text-center">পণ্য পাওয়া যায়নি।</div>;
