@@ -15,7 +15,7 @@ export const Route = createFileRoute("/_shop/order/$id")({
 function OrderPage() {
   const { id } = Route.useParams();
   const [retrying, setRetrying] = useState(false);
-  const { data, isLoading, refetch } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ["order", id],
     queryFn: async () => {
       const { data: order } = await supabase.from("orders").select("*").eq("id", id).maybeSingle();
