@@ -93,7 +93,7 @@ function Checkout() {
   const sub = subtotal();
   const shipping = form.area === "dhaka" ? DHAKA_SHIPPING : OUTSIDE_SHIPPING;
   const total = sub + shipping;
-  const advance = form.payment === "partial_online" ? Math.max(Math.round(sub * 0.1), shipping) : 0;
+  const advance = form.payment === "partial_online" ? shipping : 0;
   const due = total - advance;
 
   const placeOrder = async (e: React.FormEvent) => {
