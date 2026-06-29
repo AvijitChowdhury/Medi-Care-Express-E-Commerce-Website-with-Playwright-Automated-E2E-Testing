@@ -382,6 +382,11 @@ export type Database = {
           shipping_area: string | null
           shipping_city: string
           status: Database["public"]["Enums"]["order_status"]
+          steadfast_consignment_id: number | null
+          steadfast_sent_at: string | null
+          steadfast_status: string | null
+          steadfast_synced_at: string | null
+          steadfast_tracking_code: string | null
           subtotal: number
           total: number
           uddoktapay_invoice_id: string | null
@@ -415,6 +420,11 @@ export type Database = {
           shipping_area?: string | null
           shipping_city: string
           status?: Database["public"]["Enums"]["order_status"]
+          steadfast_consignment_id?: number | null
+          steadfast_sent_at?: string | null
+          steadfast_status?: string | null
+          steadfast_synced_at?: string | null
+          steadfast_tracking_code?: string | null
           subtotal: number
           total: number
           uddoktapay_invoice_id?: string | null
@@ -448,6 +458,11 @@ export type Database = {
           shipping_area?: string | null
           shipping_city?: string
           status?: Database["public"]["Enums"]["order_status"]
+          steadfast_consignment_id?: number | null
+          steadfast_sent_at?: string | null
+          steadfast_status?: string | null
+          steadfast_synced_at?: string | null
+          steadfast_tracking_code?: string | null
           subtotal?: number
           total?: number
           uddoktapay_invoice_id?: string | null
