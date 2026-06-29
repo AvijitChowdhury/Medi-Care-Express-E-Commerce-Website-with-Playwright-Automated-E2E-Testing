@@ -161,7 +161,12 @@ function Checkout() {
           throw new Error(json.error || "পেমেন্ট গেটওয়ে সংযোগ ব্যর্থ");
         }
         clear();
-        window.location.href = json.payment_url;
+        // Gateway sends X-Frame-Options: SAMEORIGIN, so break out of any iframe (e.g. Lovable preview)
+        if (window.top && window.top !== window.self) {
+          window.top.location.href = json.payment_url;
+        } else {
+          window.location.href = json.payment_url;
+        }
         return;
       }
 
