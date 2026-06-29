@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { taka, toBnDigits } from "@/lib/format";
-import { LogOut, Package } from "lucide-react";
+import { LogOut, Package, Star } from "lucide-react";
 
 export const Route = createFileRoute("/_shop/account")({
   head: () => ({ meta: [{ title: "আমার অ্যাকাউন্ট — মেডিকেয়ার" }] }),
