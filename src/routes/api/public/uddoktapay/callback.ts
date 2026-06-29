@@ -51,6 +51,7 @@ async function handle(request: Request) {
         .from("orders")
         .update({
           uddoktapay_invoice_id: invoiceId,
+          uddoktapay_raw: data ?? null,
           payment_status: "unpaid",
         })
         .eq("id", resolvedOrderId);
@@ -70,6 +71,10 @@ async function handle(request: Request) {
       .from("orders")
       .update({
         uddoktapay_invoice_id: invoiceId,
+        uddoktapay_transaction_id: data?.transaction_id ?? null,
+        uddoktapay_sender_number: data?.sender_number ?? null,
+        uddoktapay_payment_method: data?.payment_method ?? null,
+        uddoktapay_raw: data ?? null,
         paid_amount: paid,
         due_amount: due,
         payment_status: due === 0 ? "paid" : "partial",
