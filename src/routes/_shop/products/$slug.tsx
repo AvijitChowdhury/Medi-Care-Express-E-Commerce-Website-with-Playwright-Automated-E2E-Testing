@@ -10,7 +10,77 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { trackEvent } from "@/lib/fb-pixel";
 
+const SITE_URL = "https://pharmacy-express-now.lovable.app";
+
+function truncate(s: string, n: number) {
+  const t = (s || "").replace(/\s+/g, " ").trim();
+  return t.length <= n ? t : t.slice(0, n - 1).trimEnd() + "…";
+}
+
 export const Route = createFileRoute("/_shop/products/$slug")({
+  loader: async ({ params }) => {
+    try {
+      return await fetchProductBySlug(params.slug);
+    } catch {
+      return null;
+    }
+  },
+  head: ({ params, loaderData }) => {
+    const url = `${SITE_URL}/products/${params.slug}`;
+    const p: any = loaderData?.product;
+    if (!p) {
+      return {
+        meta: [
+          { title: "পণ্য — মেডিকেয়ার" },
+          { property: "og:url", content: url },
+        ],
+        links: [{ rel: "canonical", href: url }],
+      };
+    }
+    const name: string = p.name_bn || "পণ্য";
+    const title = truncate(`${name} — মেডিকেয়ার`, 60);
+    const baseDesc: string = p.description_bn || `${name} — মেডিকেয়ার থেকে অরিজিনাল পণ্য, সারা বাংলাদেশে দ্রুত ডেলিভারি।`;
+    const description = truncate(baseDesc, 158).padEnd(50, " ").slice(0, 158);
+    const image: string | undefined = (Array.isArray(p.images) && p.images[0]) || undefined;
+    const absImage = image && /^https?:\/\//i.test(image) ? image : image ? `${SITE_URL}${image.startsWith("/") ? "" : "/"}${image}` : undefined;
+
+    const productLd: any = {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      name,
+      description: baseDesc,
+      sku: p.id,
+      url,
+      ...(absImage ? { image: absImage } : {}),
+      ...(p.categories?.name_bn ? { category: p.categories.name_bn } : {}),
+      offers: {
+        "@type": "Offer",
+        url,
+        priceCurrency: "BDT",
+        price: String(p.price ?? 0),
+        availability: (p.stock ?? 0) > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      },
+    };
+
+    const meta: Array<Record<string, string>> = [
+      { title },
+      { name: "description", content: description },
+      { property: "og:title", content: title },
+      { property: "og:description", content: description },
+      { property: "og:type", content: "product" },
+      { property: "og:url", content: url },
+    ];
+    if (absImage) {
+      meta.push({ property: "og:image", content: absImage });
+      meta.push({ name: "twitter:image", content: absImage });
+    }
+
+    return {
+      meta,
+      links: [{ rel: "canonical", href: url }],
+      scripts: [{ type: "application/ld+json", children: JSON.stringify(productLd) }],
+    };
+  },
   component: ProductDetail,
 });
 
