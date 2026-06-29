@@ -253,7 +253,10 @@ function Orders() {
                         <div className="text-xs text-muted-foreground mt-0.5">{new Date(o.created_at).toLocaleString("bn-BD")}</div>
                       </div>
                       <div className="col-span-6 md:col-span-3">
-                        <div className="font-medium">{o.customer_name}</div>
+                        <div className="font-medium flex items-center gap-1.5">
+                          {o.customer_name}
+                          <FraudPill o={o} />
+                        </div>
                         <div className="text-xs text-muted-foreground">{o.customer_phone}</div>
                       </div>
                       <div className="col-span-6 md:col-span-1 text-primary font-semibold">{taka(o.total)}</div>
@@ -266,6 +269,9 @@ function Orders() {
                         ) : null}
                       </div>
                       <div className="col-span-4 md:col-span-1 text-right flex items-center justify-end gap-1">
+                        <button onClick={() => runFraudCheck(o.id)} disabled={fraudBusy === o.id} title="ফ্রড চেক" className="p-2 hover:bg-amber-50 text-amber-600 rounded disabled:opacity-40">
+                          <Shield className={`h-4 w-4 ${fraudBusy === o.id ? "animate-pulse" : ""}`} />
+                        </button>
                         {!o.steadfast_consignment_id && view === "active" && (
                           <button onClick={() => sendOneSteadfast(o.id)} disabled={sfBusy} title="Steadfast-এ পাঠান" className="p-2 hover:bg-emerald-50 text-emerald-600 rounded disabled:opacity-40">
                             <Truck className="h-4 w-4" />
