@@ -36,6 +36,7 @@ function Checkout() {
   const [loading, setLoading] = useState(false);
   const [isAuthed, setIsAuthed] = useState(false);
   const sessionIdRef = useRef<string>("");
+  const tokenRef = useRef<string>("");
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [form, setForm] = useState({
     name: "", phone: "", email: "", address: "", city: "", area: "dhaka",
@@ -44,7 +45,9 @@ function Checkout() {
   });
 
   useEffect(() => {
-    sessionIdRef.current = getCheckoutSessionId();
+    const s = getCheckoutSession();
+    sessionIdRef.current = s.id;
+    tokenRef.current = s.token;
     supabase.auth.getUser().then(({ data }) => {
       if (data.user?.email) {
         setIsAuthed(true);
@@ -59,20 +62,20 @@ function Checkout() {
     if (!hasAny || items.length === 0) return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(async () => {
-      await supabase.from("incomplete_orders").upsert({
-        session_id: sessionIdRef.current,
-        customer_name: form.name || null,
-        customer_phone: form.phone || null,
-        customer_email: form.email || null,
-        shipping_address: form.address || null,
-        shipping_city: form.city || null,
-        shipping_area: form.area || null,
-        payment_method: form.payment,
-        notes: form.notes || null,
-        cart: items as any,
-        subtotal: subtotal(),
-        recovered: false,
-      }, { onConflict: "session_id" });
+      await supabase.rpc("upsert_incomplete_order", {
+        p_session_id: sessionIdRef.current,
+        p_access_token: tokenRef.current,
+        p_customer_name: form.name || null,
+        p_customer_phone: form.phone || null,
+        p_customer_email: form.email || null,
+        p_shipping_address: form.address || null,
+        p_shipping_city: form.city || null,
+        p_shipping_area: form.area || null,
+        p_payment_method: form.payment,
+        p_notes: form.notes || null,
+        p_cart: items as any,
+        p_subtotal: subtotal(),
+      });
     }, 800);
     return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
   }, [form, items, subtotal]);
