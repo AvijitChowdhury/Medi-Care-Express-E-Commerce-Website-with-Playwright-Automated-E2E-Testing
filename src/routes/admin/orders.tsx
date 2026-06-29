@@ -54,6 +54,9 @@ function Orders() {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [showManual, setShowManual] = useState(false);
+  const sendOne = useServerFn(sendOrderToSteadfast);
+  const sendBulk = useServerFn(sendOrdersBulkToSteadfast);
+  const syncAll = useServerFn(syncSteadfastStatuses);
   const { data, isLoading } = useQuery({
     queryKey: ["admin", "orders", status, complete, view, page],
     queryFn: () => fetchOrders(status, complete, view, page),
