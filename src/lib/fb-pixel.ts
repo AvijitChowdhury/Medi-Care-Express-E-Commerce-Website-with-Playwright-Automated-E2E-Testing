@@ -60,9 +60,9 @@ export function trackEvent(
   }
 }
 
-/** Inline script that bootstraps fbq + fires the initial PageView. Inject once in <head>. */
+/** Inline script that bootstraps fbq + captures fbclid as _fbc cookie. PageView is fired from React (useFbEngagement) so it also reaches CAPI. */
 export const FB_PIXEL_BOOTSTRAP = `
 !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+try{var u=new URL(location.href);var fbclid=u.searchParams.get('fbclid');if(fbclid&&!document.cookie.match(/(?:^|; )_fbc=/)){document.cookie='_fbc=fb.1.'+Date.now()+'.'+fbclid+'; path=/; max-age=7776000; SameSite=Lax'}}catch(e){}
 fbq('init','${FB_PIXEL_ID}');
-fbq('track','PageView');
 `;

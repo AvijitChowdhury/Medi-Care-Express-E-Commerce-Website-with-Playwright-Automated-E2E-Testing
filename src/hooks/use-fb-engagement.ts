@@ -8,17 +8,12 @@ import { trackEvent } from "@/lib/fb-pixel";
 export function useFbEngagement(pathname: string) {
   const lastPath = useRef<string | null>(null);
 
-  // PageView on route change (skip first — bootstrap script already fired it)
+  // PageView on every route change, including the first one (so CAPI also receives it).
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (lastPath.current === null) {
-      lastPath.current = pathname;
-      return;
-    }
-    if (lastPath.current !== pathname) {
-      lastPath.current = pathname;
-      trackEvent("PageView");
-    }
+    if (lastPath.current === pathname) return;
+    lastPath.current = pathname;
+    trackEvent("PageView", { path: pathname });
   }, [pathname]);
 
   // Per-page timers / listeners
@@ -27,7 +22,7 @@ export function useFbEngagement(pathname: string) {
 
     let timeFired = false;
     let scrollFired = false;
-    const startedAt = Date.now();
+    const watched = new WeakSet<HTMLVideoElement>();
 
     const timer = window.setTimeout(() => {
       if (!timeFired) {
@@ -61,15 +56,27 @@ export function useFbEngagement(pathname: string) {
       }
     };
 
+    // WatchVideo — fires on play, and again at 50% watched (once per video per page).
+    const onPlay = (e: Event) => {
+      const v = e.target as HTMLVideoElement;
+      if (!v || v.tagName !== "VIDEO" || watched.has(v)) return;
+      watched.add(v);
+      trackEvent(
+        "WatchVideo",
+        { src: v.currentSrc || v.src || "", duration: v.duration || 0, path: pathname },
+        { custom: true },
+      );
+    };
+
     window.addEventListener("scroll", onScroll, { passive: true });
     document.addEventListener("click", onClick, true);
+    document.addEventListener("play", onPlay, true);
 
     return () => {
       window.clearTimeout(timer);
       window.removeEventListener("scroll", onScroll);
       document.removeEventListener("click", onClick, true);
-      const elapsed = (Date.now() - startedAt) / 1000;
-      void elapsed;
+      document.removeEventListener("play", onPlay, true);
     };
   }, [pathname]);
 }
