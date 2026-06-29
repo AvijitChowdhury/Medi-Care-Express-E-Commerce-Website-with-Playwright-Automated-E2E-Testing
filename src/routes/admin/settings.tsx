@@ -89,7 +89,7 @@ function Settings() {
       )}
 
       {settings && (
-        <Card title={<span className="inline-flex items-center gap-2"><Shield className="h-4 w-4 text-amber-600" /> ফ্রড চেক (BD Courier)</span> as any}
+        <Card title={<span className="inline-flex items-center gap-2"><Shield className="h-4 w-4 text-amber-600" /> ফ্রড চেক (BD Courier)</span>}
           action={<button onClick={runTest} disabled={testing} className="text-xs px-3 h-8 rounded-md border border-border disabled:opacity-50">{testing ? "টেস্টিং..." : "কানেকশন টেস্ট"}</button>}>
           <div className="space-y-3 text-sm">
             <div className="text-xs text-muted-foreground">API key পরিবর্তন করতে চাইলে ব্যাকএন্ড সিক্রেট হিসেবে <code className="px-1 py-0.5 rounded bg-muted">BDCOURIER_API_KEY</code> আপডেট করুন।</div>
