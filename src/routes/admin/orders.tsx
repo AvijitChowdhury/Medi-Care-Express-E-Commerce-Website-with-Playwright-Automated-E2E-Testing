@@ -59,6 +59,17 @@ function Orders() {
   const sendOne = useServerFn(sendOrderToSteadfast);
   const sendBulk = useServerFn(sendOrdersBulkToSteadfast);
   const syncAll = useServerFn(syncSteadfastStatuses);
+  const checkFraud = useServerFn(attachFraudToOrder);
+  const [fraudBusy, setFraudBusy] = useState<string | null>(null);
+  const runFraudCheck = async (id: string) => {
+    setFraudBusy(id);
+    try {
+      const r: any = await checkFraud({ data: { order_id: id } });
+      if (r?.ok) toast.success(`ফ্রড স্ক্যান: ${r.risk_level}`);
+      else toast.error(r?.error || "ব্যর্থ");
+      qc.invalidateQueries({ queryKey: ["admin"] });
+    } finally { setFraudBusy(null); }
+  };
   const { data, isLoading } = useQuery({
     queryKey: ["admin", "orders", status, complete, view, page],
     queryFn: () => fetchOrders(status, complete, view, page),
