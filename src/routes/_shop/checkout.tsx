@@ -44,6 +44,10 @@ function Checkout() {
     payment: "cod" as PaymentMethod,
     notes: "",
   });
+  const [couponInput, setCouponInput] = useState("");
+  const [coupon, setCoupon] = useState<{ code: string; discount: number } | null>(null);
+  const [couponBusy, setCouponBusy] = useState(false);
+
 
   useEffect(() => {
     const s = getCheckoutSession();
