@@ -4,6 +4,7 @@ import { taka, toBnDigits } from "@/lib/format";
 import { Plus } from "lucide-react";
 import { useCart } from "@/lib/cart-store";
 import { toast } from "sonner";
+import { trackEvent } from "@/lib/fb-pixel";
 
 type P = {
   id: string;
@@ -58,6 +59,13 @@ export function ProductCard({ p }: { p: P }) {
             aria-label="কার্টে যোগ করুন"
             onClick={() => {
               add({ productId: p.id, slug: p.slug, name_bn: p.name_bn, price: Number(p.price), image: img(p.images?.[0]) });
+              trackEvent("AddToCart", {
+                content_ids: [p.id],
+                content_name: p.name_bn,
+                content_type: "product",
+                value: Number(p.price),
+                currency: "BDT",
+              });
               toast.success("কার্টে যোগ হয়েছে");
             }}
             className="h-11 w-11 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center transition-all duration-300 hover:bg-rose-soft hover:rotate-90 active:scale-90 shadow-md"

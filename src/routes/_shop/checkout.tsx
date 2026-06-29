@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Minus, Plus, Trash2 } from "lucide-react";
+import { trackEvent } from "@/lib/fb-pixel";
 
 export const Route = createFileRoute("/_shop/checkout")({
   head: () => ({ meta: [{ title: "চেকআউট — মেডিকেয়ার" }] }),
@@ -103,6 +104,13 @@ function Checkout() {
       return;
     }
     setLoading(true);
+    trackEvent("InitiateCheckout", {
+      content_ids: items.map((i) => i.productId),
+      contents: items.map((i) => ({ id: i.productId, quantity: i.qty, item_price: i.price })),
+      num_items: items.reduce((a, b) => a + b.qty, 0),
+      value: total,
+      currency: "BDT",
+    });
     try {
       const { data: userData } = await supabase.auth.getUser();
       const { data: order, error } = await supabase.from("orders").insert({
