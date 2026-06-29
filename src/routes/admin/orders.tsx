@@ -248,8 +248,16 @@ function Orders() {
                         <select value={o.status} onChange={(e) => updateStatus(o.id, e.target.value)} className="h-9 w-full px-2 rounded-md border border-input bg-background text-xs">
                           {STATUSES.map((s) => <option key={s} value={s}>{STATUS_LABELS[s]}</option>)}
                         </select>
+                        {o.steadfast_tracking_code ? (
+                          <div className="text-[10px] text-emerald-600 mt-1 font-mono truncate">SF: {o.steadfast_tracking_code} · {o.steadfast_status ?? "—"}</div>
+                        ) : null}
                       </div>
-                      <div className="col-span-4 md:col-span-1 text-right">
+                      <div className="col-span-4 md:col-span-1 text-right flex items-center justify-end gap-1">
+                        {!o.steadfast_consignment_id && view === "active" && (
+                          <button onClick={() => sendOneSteadfast(o.id)} disabled={sfBusy} title="Steadfast-এ পাঠান" className="p-2 hover:bg-emerald-50 text-emerald-600 rounded disabled:opacity-40">
+                            <Truck className="h-4 w-4" />
+                          </button>
+                        )}
                         <button onClick={() => setExpanded(isOpen ? null : o.id)} className="p-2 hover:bg-muted rounded">
                           {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                         </button>
