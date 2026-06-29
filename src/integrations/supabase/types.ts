@@ -818,6 +818,13 @@ export type Database = {
           sender: string
         }[]
       }
+      get_checkout_fraud_flags: {
+        Args: never
+        Returns: {
+          fraud_auto_check_checkout: boolean
+          fraud_check_enabled: boolean
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

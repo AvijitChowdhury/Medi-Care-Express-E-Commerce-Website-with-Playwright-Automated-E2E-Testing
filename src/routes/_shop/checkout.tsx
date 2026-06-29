@@ -125,7 +125,8 @@ function Checkout() {
     }
     // Optional fraud check (admin-controlled via site_settings.fraud_auto_check_checkout)
     try {
-      const { data: s } = await supabase.from("site_settings").select("fraud_check_enabled, fraud_auto_check_checkout").eq("id", 1).maybeSingle();
+      const { data: sRows } = await supabase.rpc("get_checkout_fraud_flags");
+      const s = Array.isArray(sRows) ? sRows[0] : sRows;
       if (s?.fraud_check_enabled && s?.fraud_auto_check_checkout) {
         const fr: any = await checkFraudCached(form.phone);
         if (fr?.ok && fr.risk_level === "high") {
