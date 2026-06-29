@@ -161,11 +161,34 @@ function Checkout() {
           throw new Error(json.error || "পেমেন্ট গেটওয়ে সংযোগ ব্যর্থ");
         }
         clear();
-        // Gateway sends X-Frame-Options: SAMEORIGIN, so break out of any iframe (e.g. Lovable preview)
-        if (window.top && window.top !== window.self) {
-          window.top.location.href = json.payment_url;
-        } else {
-          window.location.href = json.payment_url;
+        // Gateway sends X-Frame-Options: SAMEORIGIN — cannot load in any iframe (Lovable preview, etc.).
+        // Try top-window navigation; if blocked by cross-origin sandbox, open in a new tab.
+        const url = json.payment_url as string;
+        let navigated = false;
+        try {
+          if (window.top && window.top !== window.self) {
+            (window.top as Window).location.href = url;
+            navigated = true;
+          } else {
+            window.location.href = url;
+            navigated = true;
+          }
+        } catch {
+          navigated = false;
+        }
+        if (!navigated) {
+          const win = window.open(url, "_blank", "noopener,noreferrer");
+          if (!win) {
+            toast.info("পেমেন্ট পেজ খুলতে নিচের বাটনে ক্লিক করুন");
+            // Render a fallback link the user can click (popup blocker safe)
+            const a = document.createElement("a");
+            a.href = url;
+            a.target = "_blank";
+            a.rel = "noopener noreferrer";
+            a.textContent = "পেমেন্ট সম্পন্ন করুন";
+            a.className = "fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] px-6 py-3 rounded-full bg-emerald-600 text-white shadow-lg";
+            document.body.appendChild(a);
+          }
         }
         return;
       }
