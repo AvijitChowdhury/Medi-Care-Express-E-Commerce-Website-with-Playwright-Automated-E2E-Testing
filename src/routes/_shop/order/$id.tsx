@@ -4,8 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { taka, toBnDigits } from "@/lib/format";
 import { Download, CheckCircle2, AlertCircle, RotateCw } from "lucide-react";
 import jsPDF from "jspdf";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
+import { trackEvent } from "@/lib/fb-pixel";
 
 export const Route = createFileRoute("/_shop/order/$id")({
   head: () => ({ meta: [{ title: "অর্ডার বিবরণী — মেডিকেয়ার" }] }),
