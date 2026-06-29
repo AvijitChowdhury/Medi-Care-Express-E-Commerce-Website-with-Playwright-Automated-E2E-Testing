@@ -65,17 +65,17 @@ function Checkout() {
       await supabase.rpc("upsert_incomplete_order", {
         p_session_id: sessionIdRef.current,
         p_access_token: tokenRef.current,
-        p_customer_name: form.name || null,
-        p_customer_phone: form.phone || null,
-        p_customer_email: form.email || null,
-        p_shipping_address: form.address || null,
-        p_shipping_city: form.city || null,
-        p_shipping_area: form.area || null,
+        p_customer_name: form.name || "",
+        p_customer_phone: form.phone || "",
+        p_customer_email: form.email || "",
+        p_shipping_address: form.address || "",
+        p_shipping_city: form.city || "",
+        p_shipping_area: form.area || "",
         p_payment_method: form.payment,
-        p_notes: form.notes || null,
+        p_notes: form.notes || "",
         p_cart: items as any,
         p_subtotal: subtotal(),
-      });
+      } as any);
     }, 800);
     return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
   }, [form, items, subtotal]);
