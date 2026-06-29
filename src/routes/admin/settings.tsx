@@ -26,15 +26,30 @@ function Settings() {
   const [settings, setSettings] = useState<any>(null);
   useEffect(() => { if (data?.settings) setSettings(data.settings); }, [data]);
 
+  const testConn = useServerFn(testBdCourierConnection);
+  const [testing, setTesting] = useState(false);
+
   const saveSettings = async () => {
     const { error } = await supabase.from("site_settings").update({
       delivery_fee_inside: Number(settings.delivery_fee_inside),
       delivery_fee_outside: Number(settings.delivery_fee_outside),
       advance_percent: Number(settings.advance_percent),
       contact_phone: settings.contact_phone, contact_email: settings.contact_email,
-    }).eq("id", 1);
+      fraud_check_enabled: !!settings.fraud_check_enabled,
+      fraud_auto_check_checkout: !!settings.fraud_auto_check_checkout,
+      fraud_auto_check_admin_create: !!settings.fraud_auto_check_admin_create,
+    } as any).eq("id", 1);
     if (error) { toast.error(error.message); return; }
     toast.success("সেটিংস আপডেট হয়েছে");
+  };
+
+  const runTest = async () => {
+    setTesting(true);
+    try {
+      const r: any = await testConn({});
+      if (r?.ok) toast.success("BD Courier সংযোগ সফল ✓");
+      else toast.error(r?.error || `সংযোগ ব্যর্থ (${r?.status ?? ""})`);
+    } finally { setTesting(false); }
   };
 
   const addAnn = async () => {
