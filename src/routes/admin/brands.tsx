@@ -184,6 +184,66 @@ function BrandsPage() {
           </div>
         </div>
       )}
+
+      {deleting && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={closeDelete}>
+          <div className="bg-background rounded-lg w-full max-w-lg p-6 space-y-4" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-destructive">ব্র্যান্ড মুছে ফেলবেন?</h2>
+              <button onClick={closeDelete}><X className="h-4 w-4" /></button>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              আপনি <span className="font-semibold text-foreground">"{deleting.name_bn}"</span> ব্র্যান্ডটি মুছে ফেলতে যাচ্ছেন। এই কাজ পূর্বাবস্থায় ফেরানো যাবে না।
+            </p>
+
+            {linkedLoading ? (
+              <div className="text-sm text-muted-foreground p-4 text-center border border-border rounded-md">সংযুক্ত পণ্য লোড হচ্ছে...</div>
+            ) : linkedProducts.length === 0 ? (
+              <div className="text-sm p-3 border border-border rounded-md bg-muted/30">
+                এই ব্র্যান্ডের সাথে কোনো পণ্য সংযুক্ত নেই। নিরাপদে মুছে ফেলা যাবে।
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="text-sm p-3 border border-destructive/30 bg-destructive/10 rounded-md text-destructive">
+                  এই ব্র্যান্ডের সাথে <strong>{linkedProducts.length}টি পণ্য</strong> সংযুক্ত আছে। মুছে ফেললে এই পণ্যগুলো থেকে ব্র্যান্ড সরিয়ে নেওয়া হবে (পণ্যগুলো মুছবে না)।
+                </div>
+                <div className="max-h-48 overflow-y-auto border border-border rounded-md divide-y divide-border">
+                  {linkedProducts.map((p) => (
+                    <div key={p.id} className="px-3 py-2 text-sm flex items-center justify-between">
+                      <span>{p.name_bn}</span>
+                      {p.slug && <span className="text-xs text-muted-foreground">{p.slug}</span>}
+                    </div>
+                  ))}
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground">
+                    নিশ্চিত করতে ব্র্যান্ডের নাম লিখুন: <span className="font-semibold text-foreground">{deleting.name_bn}</span>
+                  </label>
+                  <input
+                    className={inp}
+                    value={confirmText}
+                    onChange={(e) => setConfirmText(e.target.value)}
+                    placeholder={deleting.name_bn}
+                    autoFocus
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-2 pt-2">
+              <button onClick={closeDelete} disabled={deleteBusy} className="h-10 px-4 rounded-md border border-border text-sm">বাতিল</button>
+              <button
+                onClick={confirmDelete}
+                disabled={deleteBusy || linkedLoading || (linkedProducts.length > 0 && confirmText.trim() !== deleting.name_bn)}
+                className="h-10 px-4 rounded-md bg-destructive text-destructive-foreground text-sm disabled:opacity-50"
+              >
+                {deleteBusy ? "মুছে ফেলা হচ্ছে..." : "স্থায়ীভাবে মুছুন"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
+
   );
 }
