@@ -40,6 +40,23 @@ function OrderPage() {
   });
 
 
+  const firedRef = useRef(false);
+  useEffect(() => {
+    if (firedRef.current) return;
+    const o = data?.order;
+    const items = data?.items;
+    if (!o || !items) return;
+    firedRef.current = true;
+    trackEvent("Purchase", {
+      content_ids: items.map((it: any) => it.product_id),
+      contents: items.map((it: any) => ({ id: it.product_id, quantity: it.qty, item_price: Number(it.unit_price) })),
+      num_items: items.reduce((a: number, b: any) => a + b.qty, 0),
+      value: Number(o.total),
+      currency: "BDT",
+      order_id: o.id,
+    });
+  }, [data]);
+
   if (isLoading) return <div className="container mx-auto px-4 py-20 text-center text-muted-foreground">লোড হচ্ছে...</div>;
   if (!data?.order) return <div className="container mx-auto px-4 py-20 text-center">অর্ডার পাওয়া যায়নি।</div>;
 
