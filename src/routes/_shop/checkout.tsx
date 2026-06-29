@@ -216,7 +216,7 @@ function Checkout() {
             <div className="space-y-3">
               {[
                 { v: "cod" as const, l: "ক্যাশ অন ডেলিভারি", d: "পণ্য হাতে পেয়ে পরিশোধ করুন" },
-                { v: "partial_online" as const, l: "অনলাইন (১০% অগ্রিম)", d: `অগ্রিম ${taka(Math.max(Math.round(sub * 0.1), shipping))} • বাকিটা ডেলিভারিতে` },
+                { v: "partial_online" as const, l: "অনলাইনে আংশিক পেমেন্ট", d: `শুধু ডেলিভারি চার্জ ${taka(shipping)} এখন অনলাইনে দিন • পণ্যের ${taka(sub)} ডেলিভারিতে নগদে` },
               ].map((o) => (
                 <label key={o.v} className={`flex gap-3 items-start border rounded-md p-4 cursor-pointer ${form.payment === o.v ? "border-primary bg-primary/5" : "border-border"}`}>
                   <input type="radio" name="pay" className="mt-1" checked={form.payment === o.v} onChange={() => setForm({ ...form, payment: o.v as any })} />
