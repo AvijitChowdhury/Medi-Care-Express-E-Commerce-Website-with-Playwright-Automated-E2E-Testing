@@ -1,0 +1,17 @@
+# মেডিকেয়ার (Medicare)
+
+> Bangladeshi online store for 100% original vitamins, supplements, skin care, and hair care products. Cash on delivery and partial online payment available across Bangladesh.
+
+মেডিকেয়ার একটি বাংলাদেশি স্বাস্থ্য ও সৌন্দর্য পণ্যের অনলাইন স্টোর। সাইটের সব কনটেন্ট বাংলায়।
+
+## Pages
+
+- [হোম / Home](/): Featured products, categories, promotions and brand story.
+- [সব পণ্য / All products](/products): Browse the full catalog with filters by category and search.
+- [আমাদের সম্পর্কে / About](/about): About Medicare — mission, sourcing, and guarantees.
+- [যোগাযোগ / Contact](/contact): Phone, email and address for customer support.
+- [অর্ডার ট্র্যাক / Track order](/track): Look up order status by order ID and phone.
+
+## Optional
+
+- [রিফান্ড নীতি / Refund policy](/policy/refund): 7-day money-back guarantee terms.

@@ -1,7 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+const SITE_URL = "https://pharmacy-express-now.lovable.app";
+
 export const Route = createFileRoute("/_shop/about")({
-  head: () => ({ meta: [{ title: "আমাদের সম্পর্কে — মেডিকেয়ার" }] }),
+  head: () => ({
+    meta: [
+      { title: "আমাদের সম্পর্কে — মেডিকেয়ার" },
+      { name: "description", content: "মেডিকেয়ার বাংলাদেশের বিশ্বস্ত স্বাস্থ্য ও সৌন্দর্য পণ্যের অনলাইন স্টোর — ১০০% অরিজিনাল পণ্য, দ্রুত ডেলিভারি ও ৭ দিনের মানি ব্যাক গ্যারান্টি।" },
+      { property: "og:title", content: "আমাদের সম্পর্কে — মেডিকেয়ার" },
+      { property: "og:description", content: "মেডিকেয়ার সম্পর্কে জানুন — আমাদের মিশন, সোর্সিং এবং কেন গ্রাহকরা আমাদের উপর আস্থা রাখেন।" },
+      { property: "og:url", content: `${SITE_URL}/about` },
+    ],
+    links: [{ rel: "canonical", href: `${SITE_URL}/about` }],
+  }),
   component: About,
 });
 

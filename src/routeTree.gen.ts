@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as ShopRouteImport } from './routes/_shop'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
@@ -40,6 +41,11 @@ import { Route as ApiPublicUddoktapayCallbackRouteImport } from './routes/api/pu
 import { Route as ApiPublicSteadfastSyncRouteImport } from './routes/api/public/steadfast/sync'
 import { Route as ApiPaymentUddoktapayCreateRouteImport } from './routes/api/payment/uddoktapay/create'
 
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -195,6 +201,7 @@ const ApiPaymentUddoktapayCreateRoute =
 export interface FileRoutesByFullPath {
   '/': typeof ShopIndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/about': typeof ShopAboutRoute
   '/account': typeof ShopAccountRoute
   '/cart': typeof ShopCartRoute
@@ -224,6 +231,7 @@ export interface FileRoutesByFullPath {
   '/api/public/uddoktapay/callback': typeof ApiPublicUddoktapayCallbackRoute
 }
 export interface FileRoutesByTo {
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/about': typeof ShopAboutRoute
   '/account': typeof ShopAccountRoute
   '/cart': typeof ShopCartRoute
@@ -257,6 +265,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_shop': typeof ShopRouteWithChildren
   '/admin': typeof AdminRouteWithChildren
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_shop/about': typeof ShopAboutRoute
   '/_shop/account': typeof ShopAccountRoute
   '/_shop/cart': typeof ShopCartRoute
@@ -291,6 +300,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/sitemap.xml'
     | '/about'
     | '/account'
     | '/cart'
@@ -320,6 +330,7 @@ export interface FileRouteTypes {
     | '/api/public/uddoktapay/callback'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/sitemap.xml'
     | '/about'
     | '/account'
     | '/cart'
@@ -352,6 +363,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_shop'
     | '/admin'
+    | '/sitemap.xml'
     | '/_shop/about'
     | '/_shop/account'
     | '/_shop/cart'
@@ -385,6 +397,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   ShopRoute: typeof ShopRouteWithChildren
   AdminRoute: typeof AdminRouteWithChildren
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ApiPublicFbCapiRoute: typeof ApiPublicFbCapiRoute
   ApiPaymentUddoktapayCreateRoute: typeof ApiPaymentUddoktapayCreateRoute
   ApiPublicSteadfastSyncRoute: typeof ApiPublicSteadfastSyncRoute
@@ -393,6 +406,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin': {
       id: '/admin'
       path: '/admin'
@@ -673,6 +693,7 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   ShopRoute: ShopRouteWithChildren,
   AdminRoute: AdminRouteWithChildren,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   ApiPublicFbCapiRoute: ApiPublicFbCapiRoute,
   ApiPaymentUddoktapayCreateRoute: ApiPaymentUddoktapayCreateRoute,
   ApiPublicSteadfastSyncRoute: ApiPublicSteadfastSyncRoute,
