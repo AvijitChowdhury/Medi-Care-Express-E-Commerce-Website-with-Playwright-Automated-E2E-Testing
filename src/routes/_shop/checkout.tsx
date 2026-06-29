@@ -15,14 +15,19 @@ type PaymentMethod = "cod" | "partial_online";
 const DHAKA_SHIPPING = 70;
 const OUTSIDE_SHIPPING = 130;
 
-function getCheckoutSessionId() {
-  if (typeof window === "undefined") return "";
+function getCheckoutSession() {
+  if (typeof window === "undefined") return { id: "", token: "" };
   let id = localStorage.getItem("medi-checkout-session");
+  let token = localStorage.getItem("medi-checkout-token");
   if (!id) {
     id = crypto.randomUUID();
     localStorage.setItem("medi-checkout-session", id);
   }
-  return id;
+  if (!token) {
+    token = crypto.randomUUID();
+    localStorage.setItem("medi-checkout-token", token);
+  }
+  return { id, token };
 }
 
 function Checkout() {
@@ -31,6 +36,7 @@ function Checkout() {
   const [loading, setLoading] = useState(false);
   const [isAuthed, setIsAuthed] = useState(false);
   const sessionIdRef = useRef<string>("");
+  const tokenRef = useRef<string>("");
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [form, setForm] = useState({
     name: "", phone: "", email: "", address: "", city: "", area: "dhaka",
@@ -39,7 +45,9 @@ function Checkout() {
   });
 
   useEffect(() => {
-    sessionIdRef.current = getCheckoutSessionId();
+    const s = getCheckoutSession();
+    sessionIdRef.current = s.id;
+    tokenRef.current = s.token;
     supabase.auth.getUser().then(({ data }) => {
       if (data.user?.email) {
         setIsAuthed(true);
@@ -54,20 +62,20 @@ function Checkout() {
     if (!hasAny || items.length === 0) return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(async () => {
-      await supabase.from("incomplete_orders").upsert({
-        session_id: sessionIdRef.current,
-        customer_name: form.name || null,
-        customer_phone: form.phone || null,
-        customer_email: form.email || null,
-        shipping_address: form.address || null,
-        shipping_city: form.city || null,
-        shipping_area: form.area || null,
-        payment_method: form.payment,
-        notes: form.notes || null,
-        cart: items as any,
-        subtotal: subtotal(),
-        recovered: false,
-      }, { onConflict: "session_id" });
+      await supabase.rpc("upsert_incomplete_order", {
+        p_session_id: sessionIdRef.current,
+        p_access_token: tokenRef.current,
+        p_customer_name: form.name || "",
+        p_customer_phone: form.phone || "",
+        p_customer_email: form.email || "",
+        p_shipping_address: form.address || "",
+        p_shipping_city: form.city || "",
+        p_shipping_area: form.area || "",
+        p_payment_method: form.payment,
+        p_notes: form.notes || "",
+        p_cart: items as any,
+        p_subtotal: subtotal(),
+      } as any);
     }, 800);
     return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
   }, [form, items, subtotal]);
@@ -131,11 +139,14 @@ function Checkout() {
       );
       if (itemErr) throw itemErr;
 
-      if (sessionIdRef.current) {
-        await supabase.from("incomplete_orders")
-          .update({ recovered: true, recovered_order_id: order.id, recovered_at: new Date().toISOString() })
-          .eq("session_id", sessionIdRef.current);
+      if (sessionIdRef.current && tokenRef.current) {
+        await supabase.rpc("mark_incomplete_order_recovered", {
+          p_session_id: sessionIdRef.current,
+          p_access_token: tokenRef.current,
+          p_order_id: order.id,
+        });
         localStorage.removeItem("medi-checkout-session");
+        localStorage.removeItem("medi-checkout-token");
       }
 
       clear();

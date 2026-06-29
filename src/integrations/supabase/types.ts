@@ -135,6 +135,7 @@ export type Database = {
       }
       chat_sessions: {
         Row: {
+          access_token: string
           created_at: string
           id: string
           last_message_at: string
@@ -146,6 +147,7 @@ export type Database = {
           username: string
         }
         Insert: {
+          access_token?: string
           created_at?: string
           id?: string
           last_message_at?: string
@@ -157,6 +159,7 @@ export type Database = {
           username: string
         }
         Update: {
+          access_token?: string
           created_at?: string
           id?: string
           last_message_at?: string
@@ -171,6 +174,7 @@ export type Database = {
       }
       incomplete_orders: {
         Row: {
+          access_token: string
           cart: Json
           created_at: string
           customer_email: string | null
@@ -191,6 +195,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          access_token?: string
           cart?: Json
           created_at?: string
           customer_email?: string | null
@@ -211,6 +216,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          access_token?: string
           cart?: Json
           created_at?: string
           customer_email?: string | null
@@ -529,12 +535,57 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_chat_messages: {
+        Args: { p_access_token: string; p_session_id: string }
+        Returns: {
+          body: string
+          created_at: string
+          id: string
+          sender: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      mark_incomplete_order_recovered: {
+        Args: {
+          p_access_token: string
+          p_order_id: string
+          p_session_id: string
+        }
+        Returns: undefined
+      }
+      post_chat_message: {
+        Args: { p_access_token: string; p_body: string; p_session_id: string }
+        Returns: string
+      }
+      start_chat_session: {
+        Args: { p_name: string; p_username: string; p_welcome?: string }
+        Returns: {
+          access_token: string
+          session_id: string
+        }[]
+      }
+      upsert_incomplete_order: {
+        Args: {
+          p_access_token: string
+          p_cart: Json
+          p_customer_email: string
+          p_customer_name: string
+          p_customer_phone: string
+          p_notes: string
+          p_payment_method: string
+          p_session_id: string
+          p_shipping_address: string
+          p_shipping_area: string
+          p_shipping_city: string
+          p_subtotal: number
+        }
+        Returns: string
       }
     }
     Enums: {

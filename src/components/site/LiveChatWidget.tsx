@@ -4,47 +4,67 @@ import { playPing } from "@/lib/chat-sound";
 import { MessageCircle, Send, X } from "lucide-react";
 
 const SESSION_KEY = "medi-chat-session";
+const TOKEN_KEY = "medi-chat-token";
 const USER_KEY = "medi-chat-user";
 
-type Msg = { id: string; sender: "user" | "admin" | "system"; body: string; created_at: string };
+type Msg = { id: string; sender: string; body: string; created_at: string };
 
 export function LiveChatWidget() {
   const [open, setOpen] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<{ name: string; username: string } | null>(null);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [form, setForm] = useState({ name: "", username: "" });
   const [unread, setUnread] = useState(0);
   const scrollerRef = useRef<HTMLDivElement>(null);
+  const lastSeenIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     const sid = localStorage.getItem(SESSION_KEY);
+    const tok = localStorage.getItem(TOKEN_KEY);
     const u = localStorage.getItem(USER_KEY);
-    if (sid && u) {
+    if (sid && tok && u) {
       setSessionId(sid);
+      setToken(tok);
       setUser(JSON.parse(u));
     }
   }, []);
 
+  // Poll messages (realtime unavailable for anon since SELECT is admin-only)
   useEffect(() => {
-    if (!sessionId) return;
-    supabase.from("chat_messages").select("*").eq("session_id", sessionId).order("created_at").then(({ data }) => {
-      setMessages((data ?? []) as Msg[]);
-    });
-    const ch = supabase
-      .channel(`chat-user-${sessionId}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_messages", filter: `session_id=eq.${sessionId}` }, (payload) => {
-        const m = payload.new as Msg;
-        setMessages((cur) => [...cur, m]);
-        if (m.sender === "admin" || m.sender === "system") {
-          if (!open) setUnread((n) => n + 1);
-          playPing();
+    if (!sessionId || !token) return;
+    let stopped = false;
+
+    const load = async () => {
+      const { data, error } = await supabase.rpc("get_chat_messages", {
+        p_session_id: sessionId,
+        p_access_token: token,
+      });
+      if (stopped || error || !data) return;
+      const list = data as Msg[];
+      setMessages((cur) => {
+        // detect new admin/system messages for ping + unread
+        const prevLastId = lastSeenIdRef.current;
+        if (prevLastId) {
+          const newOnes = list.slice(list.findIndex((m) => m.id === prevLastId) + 1);
+          for (const m of newOnes) {
+            if (m.sender === "admin" || m.sender === "system") {
+              playPing();
+              if (!open) setUnread((n) => n + 1);
+            }
+          }
         }
-      })
-      .subscribe();
-    return () => { supabase.removeChannel(ch); };
-  }, [sessionId, open]);
+        lastSeenIdRef.current = list[list.length - 1]?.id ?? null;
+        return list;
+      });
+    };
+
+    load();
+    const iv = setInterval(load, 3500);
+    return () => { stopped = true; clearInterval(iv); };
+  }, [sessionId, token, open]);
 
   useEffect(() => {
     if (open) setUnread(0);
@@ -54,34 +74,42 @@ export function LiveChatWidget() {
   const start = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name.trim() || !form.username.trim()) return;
-    const { data, error } = await supabase.from("chat_sessions").insert({
-      user_name: form.name.trim(),
-      username: form.username.trim(),
-      unread_admin: 1,
-    }).select().single();
-    if (error || !data) return;
-    localStorage.setItem(SESSION_KEY, data.id);
-    localStorage.setItem(USER_KEY, JSON.stringify({ name: form.name, username: form.username }));
-    setSessionId(data.id);
-    setUser({ name: form.name, username: form.username });
-    await supabase.from("chat_messages").insert({
-      session_id: data.id,
-      sender: "system",
-      body: `স্বাগতম ${form.name}! আমাদের টিম শীঘ্রই আপনার সাথে যোগাযোগ করবে। আপনার প্রশ্ন লিখুন।`,
+    const welcome = `স্বাগতম ${form.name}! আমাদের টিম শীঘ্রই আপনার সাথে যোগাযোগ করবে। আপনার প্রশ্ন লিখুন।`;
+    const { data, error } = await supabase.rpc("start_chat_session", {
+      p_name: form.name.trim(),
+      p_username: form.username.trim(),
+      p_welcome: welcome,
     });
+    if (error || !data || !data[0]) return;
+    const { session_id, access_token } = data[0] as { session_id: string; access_token: string };
+    localStorage.setItem(SESSION_KEY, session_id);
+    localStorage.setItem(TOKEN_KEY, access_token);
+    localStorage.setItem(USER_KEY, JSON.stringify({ name: form.name, username: form.username }));
+    setSessionId(session_id);
+    setToken(access_token);
+    setUser({ name: form.name, username: form.username });
   };
 
   const send = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || !sessionId) return;
+    if (!input.trim() || !sessionId || !token) return;
     const body = input.trim();
     setInput("");
-    await supabase.from("chat_messages").insert({ session_id: sessionId, sender: "user", body });
-    const { data: sess } = await supabase.from("chat_sessions").select("unread_admin").eq("id", sessionId).single();
-    await supabase.from("chat_sessions").update({
-      last_message_at: new Date().toISOString(),
-      unread_admin: (sess?.unread_admin ?? 0) + 1,
-    }).eq("id", sessionId);
+    await supabase.rpc("post_chat_message", {
+      p_session_id: sessionId,
+      p_access_token: token,
+      p_body: body,
+    });
+    // optimistic refresh
+    const { data } = await supabase.rpc("get_chat_messages", {
+      p_session_id: sessionId,
+      p_access_token: token,
+    });
+    if (data) {
+      const list = data as Msg[];
+      lastSeenIdRef.current = list[list.length - 1]?.id ?? null;
+      setMessages(list);
+    }
   };
 
   return (
