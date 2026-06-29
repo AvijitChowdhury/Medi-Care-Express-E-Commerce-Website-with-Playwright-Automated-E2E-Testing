@@ -97,9 +97,24 @@ function Checkout() {
 
   const sub = subtotal();
   const shipping = form.area === "dhaka" ? DHAKA_SHIPPING : OUTSIDE_SHIPPING;
-  const total = sub + shipping;
+  const discount = coupon?.discount ?? 0;
+  const total = Math.max(0, sub - discount) + shipping;
   const advance = form.payment === "partial_online" ? shipping : 0;
   const due = total - advance;
+
+  const applyCoupon = async () => {
+    const code = couponInput.trim();
+    if (!code) return;
+    setCouponBusy(true);
+    const { data, error } = await supabase.rpc("apply_coupon", { p_code: code, p_subtotal: sub } as any);
+    setCouponBusy(false);
+    if (error) { toast.error(error.message); return; }
+    const row = Array.isArray(data) ? data[0] : data;
+    if (!row) { toast.error("কুপন প্রয়োগ করা যায়নি"); return; }
+    setCoupon({ code: row.code, discount: Number(row.discount) });
+    toast.success(`কুপন প্রয়োগ হয়েছে: ${taka(Number(row.discount))} ছাড়`);
+  };
+  const removeCoupon = () => { setCoupon(null); setCouponInput(""); };
 
   const placeOrder = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -127,6 +142,8 @@ function Checkout() {
         shipping_area: form.area,
         subtotal: sub,
         delivery_fee: shipping,
+        discount_amount: discount,
+        coupon_code: coupon?.code ?? null,
         total,
         payment_method: form.payment,
         payment_status: form.payment === "partial_online" ? "partial" : "unpaid",
@@ -135,9 +152,14 @@ function Checkout() {
         status: "pending",
         is_complete: true,
         notes: form.notes || null,
-      }).select().single();
+      } as any).select().single();
 
       if (error) throw error;
+
+      if (coupon?.code) {
+        await supabase.rpc("increment_coupon_usage", { p_code: coupon.code } as any);
+      }
+
 
       const { error: itemErr } = await supabase.from("order_items").insert(
         items.map((it) => ({
