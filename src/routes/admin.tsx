@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { playPing } from "@/lib/chat-sound";
 import { toast } from "sonner";
-import { LayoutDashboard, ShoppingBag, Package, Users, Settings, LogOut, Store, AlertTriangle, BarChart3, MessageCircle, Tag } from "lucide-react";
+import { LayoutDashboard, ShoppingBag, Package, Users, Settings, LogOut, Store, AlertTriangle, BarChart3, MessageCircle, Tag, Ticket } from "lucide-react";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "অ্যাডমিন প্যানেল — মেডিকেয়ার" }] }),
@@ -18,9 +18,11 @@ const nav = [
   { to: "/admin/chat", label: "লাইভ চ্যাট", Icon: MessageCircle },
   { to: "/admin/products", label: "পণ্য", Icon: Package },
   { to: "/admin/brands", label: "ব্র্যান্ড", Icon: Tag },
+  { to: "/admin/coupons", label: "কুপন", Icon: Ticket },
   { to: "/admin/customers", label: "গ্রাহক", Icon: Users },
   { to: "/admin/settings", label: "সেটিংস", Icon: Settings },
 ];
+
 
 function AdminLayout() {
   const navigate = useNavigate();
