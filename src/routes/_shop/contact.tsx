@@ -1,8 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Phone, Mail, MapPin } from "lucide-react";
 
+const SITE_URL = "https://pharmacy-express-now.lovable.app";
+
 export const Route = createFileRoute("/_shop/contact")({
-  head: () => ({ meta: [{ title: "যোগাযোগ — মেডিকেয়ার" }] }),
+  head: () => ({
+    meta: [
+      { title: "যোগাযোগ — মেডিকেয়ার" },
+      { name: "description", content: "মেডিকেয়ার কাস্টমার সাপোর্টের সাথে যোগাযোগ করুন — ফোন, ইমেইল ও ঠিকানা। অর্ডার, ডেলিভারি বা পণ্য সংক্রান্ত যেকোনো প্রশ্নে আমরা পাশে আছি।" },
+      { property: "og:title", content: "যোগাযোগ করুন — মেডিকেয়ার কাস্টমার সাপোর্ট" },
+      { property: "og:description", content: "ফোন, ইমেইল বা সরাসরি আমাদের ঠিকানায় যোগাযোগ করুন। ২৪/৭ গ্রাহক সহায়তা।" },
+      { property: "og:url", content: `${SITE_URL}/contact` },
+    ],
+    links: [{ rel: "canonical", href: `${SITE_URL}/contact` }],
+  }),
   component: Contact,
 });
 

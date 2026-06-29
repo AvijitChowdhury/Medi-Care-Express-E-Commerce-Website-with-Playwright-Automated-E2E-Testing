@@ -6,12 +6,54 @@ import { ProductCard } from "@/components/site/ProductCard";
 import { useReveal } from "@/hooks/use-reveal";
 import { ArrowRight, Star, ShieldCheck, Truck, RotateCcw, BadgeCheck, Headphones, Check } from "lucide-react";
 
+const SITE_URL = "https://pharmacy-express-now.lovable.app";
+const HOME_OG_IMAGE = "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/f9279bff-e124-4d5b-9960-a6a7ea7c6c3d/id-preview-dfe3183d--fe4cb71a-8b25-4aa3-944b-b6c63c789591.lovable.app-1780041660951.png";
+
 export const Route = createFileRoute("/_shop/")({
   head: () => ({
     meta: [
       { title: "মেডিকেয়ার — প্রিমিয়াম স্বাস্থ্য ও সৌন্দর্য পণ্য" },
-      { name: "description", content: "১০০% অরিজিনাল ভিটামিন, স্কিন কেয়ার, হেয়ার কেয়ার, সাপ্লিমেন্ট। ক্যাশ অন ডেলিভারি ও দ্রুত শিপিং।" },
-      { property: "og:image", content: "/hero.jpg" },
+      { name: "description", content: "১০০% অরিজিনাল ভিটামিন, স্কিন কেয়ার, হেয়ার কেয়ার ও সাপ্লিমেন্ট — সারা বাংলাদেশে দ্রুত ডেলিভারি, ক্যাশ অন ডেলিভারি ও ৭ দিনের মানি ব্যাক গ্যারান্টি।" },
+      { property: "og:title", content: "মেডিকেয়ার — প্রিমিয়াম স্বাস্থ্য ও সৌন্দর্য পণ্য" },
+      { property: "og:description", content: "১০০% অরিজিনাল ভিটামিন, স্কিন কেয়ার, হেয়ার কেয়ার ও সাপ্লিমেন্ট — সারা বাংলাদেশে দ্রুত ডেলিভারি ও ৭ দিনের মানি ব্যাক গ্যারান্টি।" },
+      { property: "og:url", content: `${SITE_URL}/` },
+      { property: "og:image", content: HOME_OG_IMAGE },
+      { name: "twitter:image", content: HOME_OG_IMAGE },
+    ],
+    links: [{ rel: "canonical", href: `${SITE_URL}/` }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "মেডিকেয়ার",
+          alternateName: "Medicare",
+          url: SITE_URL,
+          logo: HOME_OG_IMAGE,
+          contactPoint: {
+            "@type": "ContactPoint",
+            email: "support@medicare.com.bd",
+            contactType: "customer support",
+            areaServed: "BD",
+            availableLanguage: ["bn", "en"],
+          },
+        }),
+      },
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: "মেডিকেয়ার",
+          url: SITE_URL,
+          potentialAction: {
+            "@type": "SearchAction",
+            target: `${SITE_URL}/products?search={query}`,
+            "query-input": "required name=query",
+          },
+        }),
+      },
     ],
   }),
   component: Home,
@@ -67,7 +109,11 @@ function Home() {
           <div className="relative z-10 bg-card/40 backdrop-blur-xl p-4 md:p-8 rounded-[2.5rem] border border-card/80 shadow-[0_32px_64px_-16px_color-mix(in_oklab,var(--color-primary)_15%,transparent)] animate-float-slow">
             <img
               src={img(heroBanner?.image_url) || hero}
-              alt="হিরো"
+              alt="মেডিকেয়ার প্রিমিয়াম স্বাস্থ্য ও সৌন্দর্য পণ্যের সংগ্রহ — ভিটামিন, সাপ্লিমেন্ট, স্কিন ও হেয়ার কেয়ার"
+              width={800}
+              height={600}
+              fetchPriority="high"
+              decoding="async"
               className="rounded-[2rem] shadow-2xl overflow-hidden aspect-[4/3] w-full object-cover"
             />
             <div className="absolute -bottom-8 -right-4 md:-right-10 bg-card p-4 md:p-5 rounded-3xl shadow-2xl border border-primary/5 flex items-center gap-3 md:gap-4">
@@ -137,7 +183,7 @@ function Home() {
       <section className="mt-24 md:mt-32 max-w-7xl mx-auto px-4 md:px-6 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 reveal">
         {[promoLeft, promoRight].map((b, i) => b && (
           <Link key={i} to="/products" className="relative overflow-hidden rounded-[2rem] group">
-            <img src={img(b.image_url)} alt={b.title_bn || ""} loading="lazy" className="w-full h-56 md:h-80 object-cover group-hover:scale-110 transition-transform duration-700" />
+            <img src={img(b.image_url)} alt={b.title_bn || `মেডিকেয়ার প্রোমোশনাল অফার ${i + 1}`} loading="lazy" className="w-full h-56 md:h-80 object-cover group-hover:scale-110 transition-transform duration-700" />
             <div className="absolute inset-0 bg-gradient-to-r from-background/85 via-background/40 to-transparent" />
             <div className="absolute inset-0 p-6 md:p-10 flex flex-col justify-center max-w-[70%]">
               <h3 className="text-xl md:text-3xl font-bold text-primary leading-tight">{b.title_bn}</h3>

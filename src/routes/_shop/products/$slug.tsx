@@ -97,11 +97,11 @@ function ProductDetail() {
 
           <div className="mt-8 flex items-center gap-4">
             <div className="flex items-center border border-border rounded-md">
-              <button onClick={() => setQty(Math.max(1, qty - 1))} className="h-11 w-11 inline-flex items-center justify-center hover:bg-muted">
+              <button aria-label="পরিমাণ কমান" onClick={() => setQty(Math.max(1, qty - 1))} className="h-11 w-11 inline-flex items-center justify-center hover:bg-muted">
                 <Minus className="h-4 w-4" />
               </button>
               <div className="h-11 w-12 inline-flex items-center justify-center text-sm font-medium">{toBnDigits(qty)}</div>
-              <button onClick={() => setQty(qty + 1)} className="h-11 w-11 inline-flex items-center justify-center hover:bg-muted">
+              <button aria-label="পরিমাণ বাড়ান" onClick={() => setQty(qty + 1)} className="h-11 w-11 inline-flex items-center justify-center hover:bg-muted">
                 <Plus className="h-4 w-4" />
               </button>
             </div>

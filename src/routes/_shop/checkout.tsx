@@ -321,9 +321,9 @@ function Checkout() {
                   <div className="line-clamp-2 text-xs">{it.name_bn}</div>
                   <div className="mt-1 flex items-center gap-2">
                     <div className="flex items-center border border-border rounded">
-                      <button type="button" onClick={() => setQty(it.productId, it.qty - 1)} className="h-6 w-6 inline-flex items-center justify-center"><Minus className="h-3 w-3" /></button>
+                      <button type="button" aria-label="পরিমাণ কমান" onClick={() => setQty(it.productId, it.qty - 1)} className="h-6 w-6 inline-flex items-center justify-center"><Minus className="h-3 w-3" /></button>
                       <div className="h-6 w-7 inline-flex items-center justify-center text-xs">{toBnDigits(it.qty)}</div>
-                      <button type="button" onClick={() => setQty(it.productId, it.qty + 1)} className="h-6 w-6 inline-flex items-center justify-center"><Plus className="h-3 w-3" /></button>
+                      <button type="button" aria-label="পরিমাণ বাড়ান" onClick={() => setQty(it.productId, it.qty + 1)} className="h-6 w-6 inline-flex items-center justify-center"><Plus className="h-3 w-3" /></button>
                     </div>
                     <button type="button" onClick={() => remove(it.productId)} className="text-destructive"><Trash2 className="h-3 w-3" /></button>
                   </div>

@@ -38,9 +38,9 @@ function CartPage() {
                 <div className="mt-1 text-primary font-semibold text-sm">{taka(it.price)}</div>
                 <div className="mt-3 flex items-center gap-3">
                   <div className="flex items-center border border-border rounded-md">
-                    <button onClick={() => setQty(it.productId, it.qty - 1)} className="h-8 w-8 inline-flex items-center justify-center hover:bg-muted"><Minus className="h-3 w-3" /></button>
+                    <button aria-label="পরিমাণ কমান" onClick={() => setQty(it.productId, it.qty - 1)} className="h-8 w-8 inline-flex items-center justify-center hover:bg-muted"><Minus className="h-3 w-3" /></button>
                     <div className="h-8 w-10 inline-flex items-center justify-center text-xs">{toBnDigits(it.qty)}</div>
-                    <button onClick={() => setQty(it.productId, it.qty + 1)} className="h-8 w-8 inline-flex items-center justify-center hover:bg-muted"><Plus className="h-3 w-3" /></button>
+                    <button aria-label="পরিমাণ বাড়ান" onClick={() => setQty(it.productId, it.qty + 1)} className="h-8 w-8 inline-flex items-center justify-center hover:bg-muted"><Plus className="h-3 w-3" /></button>
                   </div>
                   <button onClick={() => remove(it.productId)} className="text-xs text-destructive hover:underline inline-flex items-center gap-1">
                     <Trash2 className="h-3 w-3" /> মুছুন
