@@ -3,6 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchProducts, fetchCategories } from "@/lib/queries";
 import { ProductCard } from "@/components/site/ProductCard";
 import { z } from "zod";
+import { useEffect, useRef } from "react";
+import { trackEvent } from "@/lib/fb-pixel";
 
 const search = z.object({
   q: z.string().optional(),
@@ -27,6 +29,25 @@ function Products() {
     queryKey: ["products", q, cat],
     queryFn: () => fetchProducts({ search: q, categorySlug: cat }),
   });
+
+  const lastKey = useRef<string>("");
+  useEffect(() => {
+    if (isLoading || !products) return;
+    const key = `${cat || "all"}|${q || ""}`;
+    if (lastKey.current === key) return;
+    lastKey.current = key;
+    const catName = cat ? cats?.find((c) => c.slug === cat)?.name_bn : undefined;
+    trackEvent("ViewContent", {
+      content_type: "product_group",
+      content_category: catName || (q ? "search" : "all_products"),
+      content_name: catName || (q ? `Search: ${q}` : "All Products"),
+      search_string: q || undefined,
+      content_ids: products.slice(0, 20).map((p: any) => p.id),
+      num_items: products.length,
+      currency: "BDT",
+    });
+  }, [products, isLoading, q, cat, cats]);
+
 
   return (
     <div className="container mx-auto px-4 py-8 md:py-12">
