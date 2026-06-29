@@ -18,15 +18,29 @@ const STATUS_LABELS: Record<string, string> = {
   pending: "গৃহীত", confirmed: "নিশ্চিত", processing: "প্রসেসিং", shipped: "শিপড", delivered: "ডেলিভারড", cancelled: "বাতিল",
 };
 
-async function fetchOrders(filter: string, complete: string, view: string) {
-  let q = supabase.from("orders").select("*, order_items(*)").order("created_at", { ascending: false });
+async function fetchOrders(filter: string, complete: string, view: string, page: number) {
+  let q = supabase.from("orders").select("*, order_items(*)", { count: "exact" }).order("created_at", { ascending: false });
+  if (view === "trash") q = q.not("deleted_at", "is", null);
+  else q = q.is("deleted_at", null);
+  if (filter !== "all") q = q.eq("status", filter as any);
+  if (complete === "complete") q = q.eq("is_complete", true);
+  if (complete === "incomplete") q = q.eq("is_complete", false);
+  const from = (page - 1) * PAGE_SIZE;
+  const to = from + PAGE_SIZE - 1;
+  const { data, count } = await q.range(from, to);
+  return { rows: data ?? [], total: count ?? 0 };
+}
+
+// Fetch ALL ids matching the current filter (for cross-page select-all)
+async function fetchAllIds(filter: string, complete: string, view: string): Promise<string[]> {
+  let q = supabase.from("orders").select("id");
   if (view === "trash") q = q.not("deleted_at", "is", null);
   else q = q.is("deleted_at", null);
   if (filter !== "all") q = q.eq("status", filter as any);
   if (complete === "complete") q = q.eq("is_complete", true);
   if (complete === "incomplete") q = q.eq("is_complete", false);
   const { data } = await q;
-  return data ?? [];
+  return (data ?? []).map((r: any) => r.id);
 }
 
 function Orders() {
