@@ -20,6 +20,7 @@ import { Route as AdminOrdersRouteImport } from './routes/admin/orders'
 import { Route as AdminIncompleteRouteImport } from './routes/admin/incomplete'
 import { Route as AdminCustomersRouteImport } from './routes/admin/customers'
 import { Route as AdminChatRouteImport } from './routes/admin/chat'
+import { Route as AdminBrandsRouteImport } from './routes/admin/brands'
 import { Route as ShopTrackRouteImport } from './routes/_shop/track'
 import { Route as ShopLoginRouteImport } from './routes/_shop/login'
 import { Route as ShopContactRouteImport } from './routes/_shop/contact'
@@ -88,6 +89,11 @@ const AdminCustomersRoute = AdminCustomersRouteImport.update({
 const AdminChatRoute = AdminChatRouteImport.update({
   id: '/chat',
   path: '/chat',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminBrandsRoute = AdminBrandsRouteImport.update({
+  id: '/brands',
+  path: '/brands',
   getParentRoute: () => AdminRoute,
 } as any)
 const ShopTrackRoute = ShopTrackRouteImport.update({
@@ -178,6 +184,7 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ShopContactRoute
   '/login': typeof ShopLoginRoute
   '/track': typeof ShopTrackRoute
+  '/admin/brands': typeof AdminBrandsRoute
   '/admin/chat': typeof AdminChatRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/incomplete': typeof AdminIncompleteRoute
@@ -203,6 +210,7 @@ export interface FileRoutesByTo {
   '/contact': typeof ShopContactRoute
   '/login': typeof ShopLoginRoute
   '/track': typeof ShopTrackRoute
+  '/admin/brands': typeof AdminBrandsRoute
   '/admin/chat': typeof AdminChatRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/incomplete': typeof AdminIncompleteRoute
@@ -232,6 +240,7 @@ export interface FileRoutesById {
   '/_shop/contact': typeof ShopContactRoute
   '/_shop/login': typeof ShopLoginRoute
   '/_shop/track': typeof ShopTrackRoute
+  '/admin/brands': typeof AdminBrandsRoute
   '/admin/chat': typeof AdminChatRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/incomplete': typeof AdminIncompleteRoute
@@ -262,6 +271,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/login'
     | '/track'
+    | '/admin/brands'
     | '/admin/chat'
     | '/admin/customers'
     | '/admin/incomplete'
@@ -287,6 +297,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/login'
     | '/track'
+    | '/admin/brands'
     | '/admin/chat'
     | '/admin/customers'
     | '/admin/incomplete'
@@ -315,6 +326,7 @@ export interface FileRouteTypes {
     | '/_shop/contact'
     | '/_shop/login'
     | '/_shop/track'
+    | '/admin/brands'
     | '/admin/chat'
     | '/admin/customers'
     | '/admin/incomplete'
@@ -419,6 +431,13 @@ declare module '@tanstack/react-router' {
       path: '/chat'
       fullPath: '/admin/chat'
       preLoaderRoute: typeof AdminChatRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/brands': {
+      id: '/admin/brands'
+      path: '/brands'
+      fullPath: '/admin/brands'
+      preLoaderRoute: typeof AdminBrandsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/_shop/track': {
@@ -564,6 +583,7 @@ const ShopRouteChildren: ShopRouteChildren = {
 const ShopRouteWithChildren = ShopRoute._addFileChildren(ShopRouteChildren)
 
 interface AdminRouteChildren {
+  AdminBrandsRoute: typeof AdminBrandsRoute
   AdminChatRoute: typeof AdminChatRoute
   AdminCustomersRoute: typeof AdminCustomersRoute
   AdminIncompleteRoute: typeof AdminIncompleteRoute
@@ -575,6 +595,7 @@ interface AdminRouteChildren {
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminBrandsRoute: AdminBrandsRoute,
   AdminChatRoute: AdminChatRoute,
   AdminCustomersRoute: AdminCustomersRoute,
   AdminIncompleteRoute: AdminIncompleteRoute,
