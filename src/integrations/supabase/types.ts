@@ -74,6 +74,30 @@ export type Database = {
         }
         Relationships: []
       }
+      brands: {
+        Row: {
+          created_at: string
+          id: string
+          logo_url: string | null
+          name_bn: string
+          slug: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name_bn: string
+          slug: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name_bn?: string
+          slug?: string
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           created_at: string
@@ -290,10 +314,12 @@ export type Database = {
           customer_email: string | null
           customer_name: string
           customer_phone: string
+          deleted_at: string | null
           delivery_fee: number
           due_amount: number
           id: string
           is_complete: boolean
+          is_manual: boolean
           notes: string | null
           order_number: string
           paid_amount: number
@@ -319,10 +345,12 @@ export type Database = {
           customer_email?: string | null
           customer_name: string
           customer_phone: string
+          deleted_at?: string | null
           delivery_fee?: number
           due_amount?: number
           id?: string
           is_complete?: boolean
+          is_manual?: boolean
           notes?: string | null
           order_number?: string
           paid_amount?: number
@@ -348,10 +376,12 @@ export type Database = {
           customer_email?: string | null
           customer_name?: string
           customer_phone?: string
+          deleted_at?: string | null
           delivery_fee?: number
           due_amount?: number
           id?: string
           is_complete?: boolean
+          is_manual?: boolean
           notes?: string | null
           order_number?: string
           paid_amount?: number
@@ -373,50 +403,125 @@ export type Database = {
         }
         Relationships: []
       }
+      product_variants: {
+        Row: {
+          attributes: Json
+          created_at: string
+          id: string
+          image: string | null
+          name_bn: string
+          price: number
+          product_id: string
+          sku: string | null
+          sort_order: number
+          stock: number
+        }
+        Insert: {
+          attributes?: Json
+          created_at?: string
+          id?: string
+          image?: string | null
+          name_bn: string
+          price?: number
+          product_id: string
+          sku?: string | null
+          sort_order?: number
+          stock?: number
+        }
+        Update: {
+          attributes?: Json
+          created_at?: string
+          id?: string
+          image?: string | null
+          name_bn?: string
+          price?: number
+          product_id?: string
+          sku?: string | null
+          sort_order?: number
+          stock?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_variants_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
+          brand_id: string | null
           category_id: string | null
           compare_at_price: number | null
           created_at: string
           description_bn: string | null
+          gallery: string[]
           id: string
           images: string[]
           is_active: boolean
           is_featured: boolean
           name_bn: string
           price: number
+          product_type: string
+          related_product_ids: string[]
+          shipping_cost: number | null
+          short_description_bn: string | null
           slug: string
           stock: number
+          tags: string[]
         }
         Insert: {
+          brand_id?: string | null
           category_id?: string | null
           compare_at_price?: number | null
           created_at?: string
           description_bn?: string | null
+          gallery?: string[]
           id?: string
           images?: string[]
           is_active?: boolean
           is_featured?: boolean
           name_bn: string
           price: number
+          product_type?: string
+          related_product_ids?: string[]
+          shipping_cost?: number | null
+          short_description_bn?: string | null
           slug: string
           stock?: number
+          tags?: string[]
         }
         Update: {
+          brand_id?: string | null
           category_id?: string | null
           compare_at_price?: number | null
           created_at?: string
           description_bn?: string | null
+          gallery?: string[]
           id?: string
           images?: string[]
           is_active?: boolean
           is_featured?: boolean
           name_bn?: string
           price?: number
+          product_type?: string
+          related_product_ids?: string[]
+          shipping_cost?: number | null
+          short_description_bn?: string | null
           slug?: string
           stock?: number
+          tags?: string[]
         }
         Relationships: [
+          {
+            foreignKeyName: "products_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "products_category_id_fkey"
             columns: ["category_id"]
