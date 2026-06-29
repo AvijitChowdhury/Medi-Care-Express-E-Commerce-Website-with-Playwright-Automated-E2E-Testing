@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { taka, toBnDigits } from "@/lib/format";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Star, X, Search } from "lucide-react";
 import { img } from "@/lib/images";
