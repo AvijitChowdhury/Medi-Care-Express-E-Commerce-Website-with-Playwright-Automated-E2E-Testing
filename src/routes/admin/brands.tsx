@@ -14,12 +14,19 @@ const inp = "h-10 w-full rounded-md border border-input bg-background px-3 text-
 const slugify = (s: string) =>
   s.toLowerCase().trim().replace(/[\s_]+/g, "-").replace(/[^a-z0-9\-\u0980-\u09FF]/g, "").replace(/-+/g, "-") || `brand-${Date.now()}`;
 
+type LinkedProduct = { id: string; name_bn: string; slug: string | null };
+
 function BrandsPage() {
   const [brands, setBrands] = useState<Brand[]>([]);
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Brand | null>(null);
   const [open, setOpen] = useState(false);
+  const [deleting, setDeleting] = useState<Brand | null>(null);
+  const [linkedProducts, setLinkedProducts] = useState<LinkedProduct[]>([]);
+  const [linkedLoading, setLinkedLoading] = useState(false);
+  const [confirmText, setConfirmText] = useState("");
+  const [deleteBusy, setDeleteBusy] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -51,13 +58,44 @@ function BrandsPage() {
     setOpen(false); setEditing(null); load();
   };
 
-  const remove = async (b: Brand) => {
-    if (counts[b.id]) { toast.error(`এই ব্র্যান্ডে ${counts[b.id]}টি পণ্য আছে। আগে পণ্য থেকে সরান।`); return; }
-    if (!confirm(`"${b.name_bn}" মুছে ফেলবেন?`)) return;
-    const { error } = await supabase.from("brands").delete().eq("id", b.id);
-    if (error) { toast.error(error.message); return; }
-    toast.success("মুছে ফেলা হয়েছে"); load();
+  const openDelete = async (b: Brand) => {
+    setDeleting(b);
+    setConfirmText("");
+    setLinkedProducts([]);
+    setLinkedLoading(true);
+    const { data } = await supabase
+      .from("products")
+      .select("id, name_bn, slug")
+      .eq("brand_id", b.id)
+      .order("name_bn");
+    setLinkedProducts((data ?? []) as LinkedProduct[]);
+    setLinkedLoading(false);
   };
+
+  const closeDelete = () => { setDeleting(null); setLinkedProducts([]); setConfirmText(""); };
+
+  const confirmDelete = async () => {
+    if (!deleting) return;
+    const hasProducts = linkedProducts.length > 0;
+    if (hasProducts && confirmText.trim() !== deleting.name_bn) {
+      toast.error("নিশ্চিত করতে ব্র্যান্ডের নাম হুবহু লিখুন");
+      return;
+    }
+    setDeleteBusy(true);
+    if (hasProducts) {
+      const { error: unlinkErr } = await supabase
+        .from("products")
+        .update({ brand_id: null })
+        .eq("brand_id", deleting.id);
+      if (unlinkErr) { setDeleteBusy(false); toast.error(unlinkErr.message); return; }
+    }
+    const { error } = await supabase.from("brands").delete().eq("id", deleting.id);
+    setDeleteBusy(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success(hasProducts ? `মুছে ফেলা হয়েছে। ${linkedProducts.length}টি পণ্য থেকে ব্র্যান্ড সরানো হয়েছে।` : "মুছে ফেলা হয়েছে");
+    closeDelete(); load();
+  };
+
 
   return (
     <div className="p-6 md:p-8 space-y-6">
