@@ -39,11 +39,8 @@ export const Route = createFileRoute("/api/payment/uddoktapay/create")({
             return Response.json({ error: "Order not found" }, { status: 404, headers: CORS });
           }
 
-          // Advance = max(10% of subtotal, delivery_fee), per app logic
-          const advance = Math.max(
-            Math.round(Number(order.subtotal) * 0.1),
-            Number(order.delivery_fee),
-          );
+          // Partial online payment: charge delivery fee upfront, rest is COD
+          const advance = Math.max(1, Math.round(Number(order.delivery_fee) || 0));
 
           const origin = new URL(request.url).origin;
           const redirectUrl = `${origin}/api/public/uddoktapay/callback?order_id=${order.id}`;
