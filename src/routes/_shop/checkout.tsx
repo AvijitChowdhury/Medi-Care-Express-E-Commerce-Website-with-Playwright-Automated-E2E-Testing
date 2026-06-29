@@ -319,11 +319,28 @@ function Checkout() {
               </div>
             ))}
           </div>
+          <div className="mt-4 pt-4 border-t border-border">
+            {coupon ? (
+              <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-md px-3 py-2 text-sm">
+                <span className="text-emerald-700">কুপন <strong className="font-mono">{coupon.code}</strong> প্রয়োগ হয়েছে</span>
+                <button type="button" onClick={removeCoupon} className="text-xs text-destructive">সরান</button>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <input value={couponInput} onChange={(e) => setCouponInput(e.target.value.toUpperCase())} placeholder="কুপন কোড" className="flex-1 h-10 px-3 rounded-md border border-input bg-background text-sm font-mono" />
+                <button type="button" onClick={applyCoupon} disabled={couponBusy || !couponInput.trim()} className="h-10 px-4 rounded-md border border-primary text-primary text-sm disabled:opacity-50">
+                  {couponBusy ? "..." : "প্রয়োগ"}
+                </button>
+              </div>
+            )}
+          </div>
           <div className="mt-4 pt-4 border-t border-border space-y-2 text-sm">
             <Row k="সাবটোটাল" v={taka(sub)} />
+            {discount > 0 && <Row k="ছাড়" v={`- ${taka(discount)}`} accent />}
             <Row k="শিপিং" v={taka(shipping)} />
             {form.payment === "partial_online" && <Row k="অগ্রিম পেমেন্ট" v={taka(advance)} accent />}
           </div>
+
           <div className="mt-3 pt-3 border-t border-border flex justify-between font-semibold">
             <span>মোট</span><span className="text-primary">{taka(total)}</span>
           </div>
