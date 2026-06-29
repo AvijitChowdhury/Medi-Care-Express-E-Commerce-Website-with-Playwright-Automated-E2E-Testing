@@ -147,6 +147,11 @@ function Orders() {
       {selected.size > 0 && (
         <div className="bg-foreground text-background rounded-xl px-4 py-3 flex items-center gap-3 flex-wrap text-sm">
           <span className="font-medium">{toBnDigits(selected.size)}টি নির্বাচিত</span>
+          {pageAllSelected && selected.size < total && (
+            <button onClick={selectAllMatching} className="text-xs underline">
+              ফিল্টারের সব {toBnDigits(total)}টি নির্বাচন করুন
+            </button>
+          )}
           <div className="w-px h-5 bg-background/30" />
           {view === "active" ? (
             <>
@@ -169,16 +174,17 @@ function Orders() {
       <div className="bg-background border border-border rounded-xl overflow-hidden">
         {isLoading ? (
           <div className="p-10 text-center text-sm text-muted-foreground">লোড হচ্ছে...</div>
-        ) : data?.length === 0 ? (
+        ) : rows.length === 0 ? (
           <div className="p-10 text-center text-sm text-muted-foreground">কোনো অর্ডার নেই</div>
         ) : (
           <>
             <div className="px-4 py-2 border-b border-border bg-muted/30 flex items-center gap-3 text-xs">
-              <input type="checkbox" checked={!!allSelected} onChange={toggleAll} className="h-4 w-4" />
-              <span className="text-muted-foreground">সব নির্বাচন</span>
+              <input type="checkbox" checked={pageAllSelected} onChange={togglePage} className="h-4 w-4" />
+              <span className="text-muted-foreground">এই পৃষ্ঠার সব নির্বাচন</span>
+              <span className="ml-auto text-muted-foreground">মোট {toBnDigits(total)}টি অর্ডার</span>
             </div>
             <div className="divide-y divide-border">
-              {data?.map((o: any) => {
+              {rows.map((o: any) => {
                 const isOpen = expanded === o.id;
                 const isSel = selected.has(o.id);
                 return (
@@ -250,6 +256,29 @@ function Orders() {
                 );
               })}
             </div>
+            {totalPages > 1 && (
+              <div className="px-4 py-3 border-t border-border flex items-center justify-between text-xs">
+                <div className="text-muted-foreground">
+                  পৃষ্ঠা {toBnDigits(page)} / {toBnDigits(totalPages)}
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={page <= 1}
+                    className="h-8 px-3 rounded border border-border inline-flex items-center gap-1 disabled:opacity-40"
+                  >
+                    <ChevronLeft className="h-3 w-3" /> পূর্ববর্তী
+                  </button>
+                  <button
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={page >= totalPages}
+                    className="h-8 px-3 rounded border border-border inline-flex items-center gap-1 disabled:opacity-40"
+                  >
+                    পরবর্তী <ChevronRight className="h-3 w-3" />
+                  </button>
+                </div>
+              </div>
+            )}
           </>
         )}
       </div>
