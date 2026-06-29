@@ -15,14 +15,19 @@ type PaymentMethod = "cod" | "partial_online";
 const DHAKA_SHIPPING = 70;
 const OUTSIDE_SHIPPING = 130;
 
-function getCheckoutSessionId() {
-  if (typeof window === "undefined") return "";
+function getCheckoutSession() {
+  if (typeof window === "undefined") return { id: "", token: "" };
   let id = localStorage.getItem("medi-checkout-session");
+  let token = localStorage.getItem("medi-checkout-token");
   if (!id) {
     id = crypto.randomUUID();
     localStorage.setItem("medi-checkout-session", id);
   }
-  return id;
+  if (!token) {
+    token = crypto.randomUUID();
+    localStorage.setItem("medi-checkout-token", token);
+  }
+  return { id, token };
 }
 
 function Checkout() {
