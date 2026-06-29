@@ -247,6 +247,39 @@ export type Database = {
         }
         Relationships: []
       }
+      fraud_checks: {
+        Row: {
+          checked_at: string
+          phone: string
+          raw: Json | null
+          risk_level: string
+          success_ratio: number
+          total_cancelled: number
+          total_delivered: number
+          total_orders: number
+        }
+        Insert: {
+          checked_at?: string
+          phone: string
+          raw?: Json | null
+          risk_level?: string
+          success_ratio?: number
+          total_cancelled?: number
+          total_delivered?: number
+          total_orders?: number
+        }
+        Update: {
+          checked_at?: string
+          phone?: string
+          raw?: Json | null
+          risk_level?: string
+          success_ratio?: number
+          total_cancelled?: number
+          total_delivered?: number
+          total_orders?: number
+        }
+        Relationships: []
+      }
       incomplete_orders: {
         Row: {
           access_token: string
@@ -370,6 +403,11 @@ export type Database = {
           delivery_fee: number
           discount_amount: number
           due_amount: number
+          fraud_checked_at: string | null
+          fraud_risk_level: string | null
+          fraud_success_ratio: number | null
+          fraud_total_cancelled: number | null
+          fraud_total_orders: number | null
           id: string
           is_complete: boolean
           is_manual: boolean
@@ -408,6 +446,11 @@ export type Database = {
           delivery_fee?: number
           discount_amount?: number
           due_amount?: number
+          fraud_checked_at?: string | null
+          fraud_risk_level?: string | null
+          fraud_success_ratio?: number | null
+          fraud_total_cancelled?: number | null
+          fraud_total_orders?: number | null
           id?: string
           is_complete?: boolean
           is_manual?: boolean
@@ -446,6 +489,11 @@ export type Database = {
           delivery_fee?: number
           discount_amount?: number
           due_amount?: number
+          fraud_checked_at?: string | null
+          fraud_risk_level?: string | null
+          fraud_success_ratio?: number | null
+          fraud_total_cancelled?: number | null
+          fraud_total_orders?: number | null
           id?: string
           is_complete?: boolean
           is_manual?: boolean
@@ -694,6 +742,9 @@ export type Database = {
           contact_phone: string | null
           delivery_fee_inside: number
           delivery_fee_outside: number
+          fraud_auto_check_admin_create: boolean | null
+          fraud_auto_check_checkout: boolean | null
+          fraud_check_enabled: boolean | null
           id: number
           updated_at: string
         }
@@ -703,6 +754,9 @@ export type Database = {
           contact_phone?: string | null
           delivery_fee_inside?: number
           delivery_fee_outside?: number
+          fraud_auto_check_admin_create?: boolean | null
+          fraud_auto_check_checkout?: boolean | null
+          fraud_check_enabled?: boolean | null
           id?: number
           updated_at?: string
         }
@@ -712,6 +766,9 @@ export type Database = {
           contact_phone?: string | null
           delivery_fee_inside?: number
           delivery_fee_outside?: number
+          fraud_auto_check_admin_create?: boolean | null
+          fraud_auto_check_checkout?: boolean | null
+          fraud_check_enabled?: boolean | null
           id?: number
           updated_at?: string
         }
