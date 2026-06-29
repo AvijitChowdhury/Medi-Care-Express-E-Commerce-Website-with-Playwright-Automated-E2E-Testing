@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Star, Check } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_shop/account/reviews")({
+export const Route = createFileRoute("/_shop/my-reviews")({
   head: () => ({ meta: [{ title: "আমার রিভিউ — মেডিকেয়ার" }] }),
   component: MyReviewsPage,
 });

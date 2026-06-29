@@ -23,6 +23,7 @@ import { Route as AdminCouponsRouteImport } from './routes/admin/coupons'
 import { Route as AdminChatRouteImport } from './routes/admin/chat'
 import { Route as AdminBrandsRouteImport } from './routes/admin/brands'
 import { Route as ShopTrackRouteImport } from './routes/_shop/track'
+import { Route as ShopMyReviewsRouteImport } from './routes/_shop/my-reviews'
 import { Route as ShopLoginRouteImport } from './routes/_shop/login'
 import { Route as ShopContactRouteImport } from './routes/_shop/contact'
 import { Route as ShopCheckoutRouteImport } from './routes/_shop/checkout'
@@ -35,7 +36,6 @@ import { Route as ShopProductsSlugRouteImport } from './routes/_shop/products/$s
 import { Route as ShopPolicyRefundRouteImport } from './routes/_shop/policy/refund'
 import { Route as ShopPolicyPrivacyRouteImport } from './routes/_shop/policy/privacy'
 import { Route as ShopOrderIdRouteImport } from './routes/_shop/order/$id'
-import { Route as ShopAccountReviewsRouteImport } from './routes/_shop/account/reviews'
 import { Route as ApiPublicUddoktapayCallbackRouteImport } from './routes/api/public/uddoktapay/callback'
 import { Route as ApiPaymentUddoktapayCreateRouteImport } from './routes/api/payment/uddoktapay/create'
 
@@ -108,6 +108,11 @@ const ShopTrackRoute = ShopTrackRouteImport.update({
   path: '/track',
   getParentRoute: () => ShopRoute,
 } as any)
+const ShopMyReviewsRoute = ShopMyReviewsRouteImport.update({
+  id: '/my-reviews',
+  path: '/my-reviews',
+  getParentRoute: () => ShopRoute,
+} as any)
 const ShopLoginRoute = ShopLoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -168,11 +173,6 @@ const ShopOrderIdRoute = ShopOrderIdRouteImport.update({
   path: '/order/$id',
   getParentRoute: () => ShopRoute,
 } as any)
-const ShopAccountReviewsRoute = ShopAccountReviewsRouteImport.update({
-  id: '/reviews',
-  path: '/reviews',
-  getParentRoute: () => ShopAccountRoute,
-} as any)
 const ApiPublicUddoktapayCallbackRoute =
   ApiPublicUddoktapayCallbackRouteImport.update({
     id: '/api/public/uddoktapay/callback',
@@ -190,11 +190,12 @@ export interface FileRoutesByFullPath {
   '/': typeof ShopIndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/about': typeof ShopAboutRoute
-  '/account': typeof ShopAccountRouteWithChildren
+  '/account': typeof ShopAccountRoute
   '/cart': typeof ShopCartRoute
   '/checkout': typeof ShopCheckoutRoute
   '/contact': typeof ShopContactRoute
   '/login': typeof ShopLoginRoute
+  '/my-reviews': typeof ShopMyReviewsRoute
   '/track': typeof ShopTrackRoute
   '/admin/brands': typeof AdminBrandsRoute
   '/admin/chat': typeof AdminChatRoute
@@ -206,7 +207,6 @@ export interface FileRoutesByFullPath {
   '/admin/recovery': typeof AdminRecoveryRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/': typeof AdminIndexRoute
-  '/account/reviews': typeof ShopAccountReviewsRoute
   '/order/$id': typeof ShopOrderIdRoute
   '/policy/privacy': typeof ShopPolicyPrivacyRoute
   '/policy/refund': typeof ShopPolicyRefundRoute
@@ -218,11 +218,12 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/about': typeof ShopAboutRoute
-  '/account': typeof ShopAccountRouteWithChildren
+  '/account': typeof ShopAccountRoute
   '/cart': typeof ShopCartRoute
   '/checkout': typeof ShopCheckoutRoute
   '/contact': typeof ShopContactRoute
   '/login': typeof ShopLoginRoute
+  '/my-reviews': typeof ShopMyReviewsRoute
   '/track': typeof ShopTrackRoute
   '/admin/brands': typeof AdminBrandsRoute
   '/admin/chat': typeof AdminChatRoute
@@ -235,7 +236,6 @@ export interface FileRoutesByTo {
   '/admin/settings': typeof AdminSettingsRoute
   '/': typeof ShopIndexRoute
   '/admin': typeof AdminIndexRoute
-  '/account/reviews': typeof ShopAccountReviewsRoute
   '/order/$id': typeof ShopOrderIdRoute
   '/policy/privacy': typeof ShopPolicyPrivacyRoute
   '/policy/refund': typeof ShopPolicyRefundRoute
@@ -250,11 +250,12 @@ export interface FileRoutesById {
   '/_shop': typeof ShopRouteWithChildren
   '/admin': typeof AdminRouteWithChildren
   '/_shop/about': typeof ShopAboutRoute
-  '/_shop/account': typeof ShopAccountRouteWithChildren
+  '/_shop/account': typeof ShopAccountRoute
   '/_shop/cart': typeof ShopCartRoute
   '/_shop/checkout': typeof ShopCheckoutRoute
   '/_shop/contact': typeof ShopContactRoute
   '/_shop/login': typeof ShopLoginRoute
+  '/_shop/my-reviews': typeof ShopMyReviewsRoute
   '/_shop/track': typeof ShopTrackRoute
   '/admin/brands': typeof AdminBrandsRoute
   '/admin/chat': typeof AdminChatRoute
@@ -267,7 +268,6 @@ export interface FileRoutesById {
   '/admin/settings': typeof AdminSettingsRoute
   '/_shop/': typeof ShopIndexRoute
   '/admin/': typeof AdminIndexRoute
-  '/_shop/account/reviews': typeof ShopAccountReviewsRoute
   '/_shop/order/$id': typeof ShopOrderIdRoute
   '/_shop/policy/privacy': typeof ShopPolicyPrivacyRoute
   '/_shop/policy/refund': typeof ShopPolicyRefundRoute
@@ -288,6 +288,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/contact'
     | '/login'
+    | '/my-reviews'
     | '/track'
     | '/admin/brands'
     | '/admin/chat'
@@ -299,7 +300,6 @@ export interface FileRouteTypes {
     | '/admin/recovery'
     | '/admin/settings'
     | '/admin/'
-    | '/account/reviews'
     | '/order/$id'
     | '/policy/privacy'
     | '/policy/refund'
@@ -316,6 +316,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/contact'
     | '/login'
+    | '/my-reviews'
     | '/track'
     | '/admin/brands'
     | '/admin/chat'
@@ -328,7 +329,6 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/'
     | '/admin'
-    | '/account/reviews'
     | '/order/$id'
     | '/policy/privacy'
     | '/policy/refund'
@@ -347,6 +347,7 @@ export interface FileRouteTypes {
     | '/_shop/checkout'
     | '/_shop/contact'
     | '/_shop/login'
+    | '/_shop/my-reviews'
     | '/_shop/track'
     | '/admin/brands'
     | '/admin/chat'
@@ -359,7 +360,6 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/_shop/'
     | '/admin/'
-    | '/_shop/account/reviews'
     | '/_shop/order/$id'
     | '/_shop/policy/privacy'
     | '/_shop/policy/refund'
@@ -478,6 +478,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShopTrackRouteImport
       parentRoute: typeof ShopRoute
     }
+    '/_shop/my-reviews': {
+      id: '/_shop/my-reviews'
+      path: '/my-reviews'
+      fullPath: '/my-reviews'
+      preLoaderRoute: typeof ShopMyReviewsRouteImport
+      parentRoute: typeof ShopRoute
+    }
     '/_shop/login': {
       id: '/_shop/login'
       path: '/login'
@@ -562,13 +569,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShopOrderIdRouteImport
       parentRoute: typeof ShopRoute
     }
-    '/_shop/account/reviews': {
-      id: '/_shop/account/reviews'
-      path: '/reviews'
-      fullPath: '/account/reviews'
-      preLoaderRoute: typeof ShopAccountReviewsRouteImport
-      parentRoute: typeof ShopAccountRoute
-    }
     '/api/public/uddoktapay/callback': {
       id: '/api/public/uddoktapay/callback'
       path: '/api/public/uddoktapay/callback'
@@ -586,25 +586,14 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface ShopAccountRouteChildren {
-  ShopAccountReviewsRoute: typeof ShopAccountReviewsRoute
-}
-
-const ShopAccountRouteChildren: ShopAccountRouteChildren = {
-  ShopAccountReviewsRoute: ShopAccountReviewsRoute,
-}
-
-const ShopAccountRouteWithChildren = ShopAccountRoute._addFileChildren(
-  ShopAccountRouteChildren,
-)
-
 interface ShopRouteChildren {
   ShopAboutRoute: typeof ShopAboutRoute
-  ShopAccountRoute: typeof ShopAccountRouteWithChildren
+  ShopAccountRoute: typeof ShopAccountRoute
   ShopCartRoute: typeof ShopCartRoute
   ShopCheckoutRoute: typeof ShopCheckoutRoute
   ShopContactRoute: typeof ShopContactRoute
   ShopLoginRoute: typeof ShopLoginRoute
+  ShopMyReviewsRoute: typeof ShopMyReviewsRoute
   ShopTrackRoute: typeof ShopTrackRoute
   ShopIndexRoute: typeof ShopIndexRoute
   ShopOrderIdRoute: typeof ShopOrderIdRoute
@@ -616,11 +605,12 @@ interface ShopRouteChildren {
 
 const ShopRouteChildren: ShopRouteChildren = {
   ShopAboutRoute: ShopAboutRoute,
-  ShopAccountRoute: ShopAccountRouteWithChildren,
+  ShopAccountRoute: ShopAccountRoute,
   ShopCartRoute: ShopCartRoute,
   ShopCheckoutRoute: ShopCheckoutRoute,
   ShopContactRoute: ShopContactRoute,
   ShopLoginRoute: ShopLoginRoute,
+  ShopMyReviewsRoute: ShopMyReviewsRoute,
   ShopTrackRoute: ShopTrackRoute,
   ShopIndexRoute: ShopIndexRoute,
   ShopOrderIdRoute: ShopOrderIdRoute,
