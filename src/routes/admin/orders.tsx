@@ -153,6 +153,9 @@ function Orders() {
       <div className="flex items-center justify-between flex-wrap gap-3">
         <h1 className="text-2xl font-semibold tracking-tight">অর্ডার ম্যানেজমেন্ট</h1>
         <div className="flex gap-2">
+          <button onClick={runSync} disabled={sfBusy} className="h-10 px-3 rounded-md border border-border text-sm inline-flex items-center gap-2 disabled:opacity-60">
+            <RefreshCw className={`h-4 w-4 ${sfBusy ? "animate-spin" : ""}`} /> Steadfast সিঙ্ক
+          </button>
           <button onClick={() => setShowManual(true)} className="h-10 px-4 rounded-md bg-primary text-primary-foreground text-sm inline-flex items-center gap-2">
             <Plus className="h-4 w-4" /> ম্যানুয়াল অর্ডার
           </button>
