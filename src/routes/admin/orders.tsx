@@ -197,6 +197,7 @@ function Orders() {
                 <option value="">স্ট্যাটাস পরিবর্তন...</option>
                 {STATUSES.map((s) => <option key={s} value={s}>{STATUS_LABELS[s]}</option>)}
               </select>
+              <button onClick={bulkSteadfast} disabled={sfBusy} className="h-8 px-3 rounded bg-emerald-500 text-white text-xs inline-flex items-center gap-1.5 disabled:opacity-60"><Truck className="h-3 w-3" /> Steadfast-এ পাঠান</button>
               <button onClick={bulkTrash} className="h-8 px-3 rounded bg-background/10 hover:bg-background/20 text-xs inline-flex items-center gap-1.5"><Trash2 className="h-3 w-3" /> ট্র্যাশে পাঠান</button>
             </>
           ) : (
