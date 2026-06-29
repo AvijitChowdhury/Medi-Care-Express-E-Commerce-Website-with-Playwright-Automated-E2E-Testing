@@ -3,6 +3,9 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { taka, toBnDigits } from "@/lib/format";
 import { useMemo, useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+
+const PAGE_SIZE = 20;
 import { toast } from "sonner";
 import { ChevronDown, ChevronUp, Trash2, RotateCcw, Plus, X, Search } from "lucide-react";
 
@@ -15,15 +18,29 @@ const STATUS_LABELS: Record<string, string> = {
   pending: "গৃহীত", confirmed: "নিশ্চিত", processing: "প্রসেসিং", shipped: "শিপড", delivered: "ডেলিভারড", cancelled: "বাতিল",
 };
 
-async function fetchOrders(filter: string, complete: string, view: string) {
-  let q = supabase.from("orders").select("*, order_items(*)").order("created_at", { ascending: false });
+async function fetchOrders(filter: string, complete: string, view: string, page: number) {
+  let q = supabase.from("orders").select("*, order_items(*)", { count: "exact" }).order("created_at", { ascending: false });
+  if (view === "trash") q = q.not("deleted_at", "is", null);
+  else q = q.is("deleted_at", null);
+  if (filter !== "all") q = q.eq("status", filter as any);
+  if (complete === "complete") q = q.eq("is_complete", true);
+  if (complete === "incomplete") q = q.eq("is_complete", false);
+  const from = (page - 1) * PAGE_SIZE;
+  const to = from + PAGE_SIZE - 1;
+  const { data, count } = await q.range(from, to);
+  return { rows: data ?? [], total: count ?? 0 };
+}
+
+// Fetch ALL ids matching the current filter (for cross-page select-all)
+async function fetchAllIds(filter: string, complete: string, view: string): Promise<string[]> {
+  let q = supabase.from("orders").select("id");
   if (view === "trash") q = q.not("deleted_at", "is", null);
   else q = q.is("deleted_at", null);
   if (filter !== "all") q = q.eq("status", filter as any);
   if (complete === "complete") q = q.eq("is_complete", true);
   if (complete === "incomplete") q = q.eq("is_complete", false);
   const { data } = await q;
-  return data ?? [];
+  return (data ?? []).map((r: any) => r.id);
 }
 
 function Orders() {
@@ -31,14 +48,32 @@ function Orders() {
   const [status, setStatus] = useState("all");
   const [complete, setComplete] = useState("all");
   const [view, setView] = useState<"active" | "trash">("active");
+  const [page, setPage] = useState(1);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [showManual, setShowManual] = useState(false);
-  const { data, isLoading } = useQuery({ queryKey: ["admin", "orders", status, complete, view], queryFn: () => fetchOrders(status, complete, view) });
+  const { data, isLoading } = useQuery({
+    queryKey: ["admin", "orders", status, complete, view, page],
+    queryFn: () => fetchOrders(status, complete, view, page),
+  });
+  const rows = data?.rows ?? [];
+  const total = data?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
-  const allSelected = useMemo(() => (data?.length ?? 0) > 0 && data?.every((o: any) => selected.has(o.id)), [data, selected]);
+  // page-level select-all state (selected is persistent across pages)
+  const pageAllSelected = useMemo(() => rows.length > 0 && rows.every((o: any) => selected.has(o.id)), [rows, selected]);
   const toggle = (id: string) => { const s = new Set(selected); s.has(id) ? s.delete(id) : s.add(id); setSelected(s); };
-  const toggleAll = () => { if (!data) return; setSelected(allSelected ? new Set() : new Set(data.map((o: any) => o.id))); };
+  const togglePage = () => {
+    const s = new Set(selected);
+    if (pageAllSelected) rows.forEach((o: any) => s.delete(o.id));
+    else rows.forEach((o: any) => s.add(o.id));
+    setSelected(s);
+  };
+  const selectAllMatching = async () => {
+    const ids = await fetchAllIds(status, complete, view);
+    setSelected(new Set(ids));
+    toast.success(`${toBnDigits(ids.length)}টি অর্ডার নির্বাচিত`);
+  };
 
   const updateStatus = async (id: string, newStatus: string) => {
     const { error } = await supabase.from("orders").update({ status: newStatus as any }).eq("id", id);
@@ -91,19 +126,19 @@ function Orders() {
 
       <div className="flex gap-2 flex-wrap items-center">
         <div className="inline-flex rounded-full border border-border overflow-hidden">
-          <button onClick={() => { setView("active"); setSelected(new Set()); }} className={`h-9 px-4 text-xs ${view === "active" ? "bg-foreground text-background" : ""}`}>সক্রিয়</button>
-          <button onClick={() => { setView("trash"); setSelected(new Set()); }} className={`h-9 px-4 text-xs inline-flex items-center gap-1 ${view === "trash" ? "bg-foreground text-background" : ""}`}><Trash2 className="h-3 w-3" /> ট্র্যাশ</button>
+          <button onClick={() => { setView("active"); setSelected(new Set()); setPage(1); }} className={`h-9 px-4 text-xs ${view === "active" ? "bg-foreground text-background" : ""}`}>সক্রিয়</button>
+          <button onClick={() => { setView("trash"); setSelected(new Set()); setPage(1); }} className={`h-9 px-4 text-xs inline-flex items-center gap-1 ${view === "trash" ? "bg-foreground text-background" : ""}`}><Trash2 className="h-3 w-3" /> ট্র্যাশ</button>
         </div>
         <div className="w-px h-6 bg-border mx-1" />
         {["all", "complete", "incomplete"].map((c) => (
-          <button key={c} onClick={() => setComplete(c)} className={`h-9 px-4 rounded-full text-xs border ${complete === c ? "bg-foreground text-background border-foreground" : "border-border"}`}>
+          <button key={c} onClick={() => { setComplete(c); setPage(1); }} className={`h-9 px-4 rounded-full text-xs border ${complete === c ? "bg-foreground text-background border-foreground" : "border-border"}`}>
             {c === "all" ? "সব" : c === "complete" ? "সম্পন্ন" : "অসম্পূর্ণ"}
           </button>
         ))}
         <div className="w-px h-6 bg-border mx-1" />
-        <button onClick={() => setStatus("all")} className={`h-9 px-4 rounded-full text-xs border ${status === "all" ? "bg-primary text-primary-foreground border-primary" : "border-border"}`}>সব স্ট্যাটাস</button>
+        <button onClick={() => { setStatus("all"); setPage(1); }} className={`h-9 px-4 rounded-full text-xs border ${status === "all" ? "bg-primary text-primary-foreground border-primary" : "border-border"}`}>সব স্ট্যাটাস</button>
         {STATUSES.map((s) => (
-          <button key={s} onClick={() => setStatus(s)} className={`h-9 px-4 rounded-full text-xs border ${status === s ? "bg-primary text-primary-foreground border-primary" : "border-border"}`}>
+          <button key={s} onClick={() => { setStatus(s); setPage(1); }} className={`h-9 px-4 rounded-full text-xs border ${status === s ? "bg-primary text-primary-foreground border-primary" : "border-border"}`}>
             {STATUS_LABELS[s]}
           </button>
         ))}
@@ -112,6 +147,11 @@ function Orders() {
       {selected.size > 0 && (
         <div className="bg-foreground text-background rounded-xl px-4 py-3 flex items-center gap-3 flex-wrap text-sm">
           <span className="font-medium">{toBnDigits(selected.size)}টি নির্বাচিত</span>
+          {pageAllSelected && selected.size < total && (
+            <button onClick={selectAllMatching} className="text-xs underline">
+              ফিল্টারের সব {toBnDigits(total)}টি নির্বাচন করুন
+            </button>
+          )}
           <div className="w-px h-5 bg-background/30" />
           {view === "active" ? (
             <>
@@ -134,16 +174,17 @@ function Orders() {
       <div className="bg-background border border-border rounded-xl overflow-hidden">
         {isLoading ? (
           <div className="p-10 text-center text-sm text-muted-foreground">লোড হচ্ছে...</div>
-        ) : data?.length === 0 ? (
+        ) : rows.length === 0 ? (
           <div className="p-10 text-center text-sm text-muted-foreground">কোনো অর্ডার নেই</div>
         ) : (
           <>
             <div className="px-4 py-2 border-b border-border bg-muted/30 flex items-center gap-3 text-xs">
-              <input type="checkbox" checked={!!allSelected} onChange={toggleAll} className="h-4 w-4" />
-              <span className="text-muted-foreground">সব নির্বাচন</span>
+              <input type="checkbox" checked={pageAllSelected} onChange={togglePage} className="h-4 w-4" />
+              <span className="text-muted-foreground">এই পৃষ্ঠার সব নির্বাচন</span>
+              <span className="ml-auto text-muted-foreground">মোট {toBnDigits(total)}টি অর্ডার</span>
             </div>
             <div className="divide-y divide-border">
-              {data?.map((o: any) => {
+              {rows.map((o: any) => {
                 const isOpen = expanded === o.id;
                 const isSel = selected.has(o.id);
                 return (
@@ -215,6 +256,29 @@ function Orders() {
                 );
               })}
             </div>
+            {totalPages > 1 && (
+              <div className="px-4 py-3 border-t border-border flex items-center justify-between text-xs">
+                <div className="text-muted-foreground">
+                  পৃষ্ঠা {toBnDigits(page)} / {toBnDigits(totalPages)}
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={page <= 1}
+                    className="h-8 px-3 rounded border border-border inline-flex items-center gap-1 disabled:opacity-40"
+                  >
+                    <ChevronLeft className="h-3 w-3" /> পূর্ববর্তী
+                  </button>
+                  <button
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={page >= totalPages}
+                    className="h-8 px-3 rounded border border-border inline-flex items-center gap-1 disabled:opacity-40"
+                  >
+                    পরবর্তী <ChevronRight className="h-3 w-3" />
+                  </button>
+                </div>
+              </div>
+            )}
           </>
         )}
       </div>
