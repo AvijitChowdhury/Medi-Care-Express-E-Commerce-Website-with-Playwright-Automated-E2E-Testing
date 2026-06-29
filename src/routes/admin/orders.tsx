@@ -4,8 +4,10 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { taka, toBnDigits } from "@/lib/format";
 import { useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, Truck, RefreshCw } from "lucide-react";
+import { ChevronLeft, ChevronRight, Truck, RefreshCw, ShieldAlert, ShieldCheck, Shield } from "lucide-react";
 import { sendOrderToSteadfast, sendOrdersBulkToSteadfast, syncSteadfastStatuses } from "@/lib/steadfast.functions";
+import { attachFraudToOrder } from "@/lib/fraud.functions";
+import { checkFraudCached, riskColor } from "@/lib/fraud-client";
 
 const PAGE_SIZE = 20;
 import { toast } from "sonner";
@@ -57,6 +59,17 @@ function Orders() {
   const sendOne = useServerFn(sendOrderToSteadfast);
   const sendBulk = useServerFn(sendOrdersBulkToSteadfast);
   const syncAll = useServerFn(syncSteadfastStatuses);
+  const checkFraud = useServerFn(attachFraudToOrder);
+  const [fraudBusy, setFraudBusy] = useState<string | null>(null);
+  const runFraudCheck = async (id: string) => {
+    setFraudBusy(id);
+    try {
+      const r: any = await checkFraud({ data: { order_id: id } });
+      if (r?.ok) toast.success(`ফ্রড স্ক্যান: ${r.risk_level}`);
+      else toast.error(r?.error || "ব্যর্থ");
+      qc.invalidateQueries({ queryKey: ["admin"] });
+    } finally { setFraudBusy(null); }
+  };
   const { data, isLoading } = useQuery({
     queryKey: ["admin", "orders", status, complete, view, page],
     queryFn: () => fetchOrders(status, complete, view, page),
@@ -240,7 +253,10 @@ function Orders() {
                         <div className="text-xs text-muted-foreground mt-0.5">{new Date(o.created_at).toLocaleString("bn-BD")}</div>
                       </div>
                       <div className="col-span-6 md:col-span-3">
-                        <div className="font-medium">{o.customer_name}</div>
+                        <div className="font-medium flex items-center gap-1.5">
+                          {o.customer_name}
+                          <FraudPill o={o} />
+                        </div>
                         <div className="text-xs text-muted-foreground">{o.customer_phone}</div>
                       </div>
                       <div className="col-span-6 md:col-span-1 text-primary font-semibold">{taka(o.total)}</div>
@@ -253,6 +269,9 @@ function Orders() {
                         ) : null}
                       </div>
                       <div className="col-span-4 md:col-span-1 text-right flex items-center justify-end gap-1">
+                        <button onClick={() => runFraudCheck(o.id)} disabled={fraudBusy === o.id} title="ফ্রড চেক" className="p-2 hover:bg-amber-50 text-amber-600 rounded disabled:opacity-40">
+                          <Shield className={`h-4 w-4 ${fraudBusy === o.id ? "animate-pulse" : ""}`} />
+                        </button>
                         {!o.steadfast_consignment_id && view === "active" && (
                           <button onClick={() => sendOneSteadfast(o.id)} disabled={sfBusy} title="Steadfast-এ পাঠান" className="p-2 hover:bg-emerald-50 text-emerald-600 rounded disabled:opacity-40">
                             <Truck className="h-4 w-4" />
@@ -368,6 +387,14 @@ function ManualOrderModal({ onClose, onSaved }: { onClose: () => void; onSaved: 
       toast.error("গ্রাহকের নাম, ফোন, ঠিকানা ও শহর আবশ্যক"); return;
     }
     if (items.length === 0) { toast.error("অন্তত একটি পণ্য যোগ করুন"); return; }
+    // Auto fraud check
+    try {
+      const fr: any = await checkFraudCached(form.customer_phone);
+      if (fr?.ok && (fr.risk_level === "high" || fr.risk_level === "medium")) {
+        const proceed = confirm(`⚠️ ফ্রড সতর্কতা\n\nঝুঁকি: ${fr.risk_level.toUpperCase()}\nমোট অর্ডার: ${fr.total_orders}\nবাতিল: ${fr.total_cancelled}\nসফলতার হার: ${fr.success_ratio}%\n\nতবুও অর্ডার তৈরি করবেন?`);
+        if (!proceed) return;
+      }
+    } catch {}
     setSaving(true);
     const paid = Number(form.paid_amount) || 0;
     const { data: ord, error } = await supabase.from("orders").insert({
@@ -482,4 +509,18 @@ function ManualOrderModal({ onClose, onSaved }: { onClose: () => void; onSaved: 
 const inp = "w-full h-10 px-3 rounded-md border border-input bg-background text-sm";
 function F({ label, children, full }: any) {
   return <label className={`block ${full ? "md:col-span-2" : ""}`}><span className="text-xs font-medium block mb-1.5">{label}</span>{children}</label>;
+}
+
+function FraudPill({ o }: { o: any }) {
+  if (!o.fraud_risk_level) return null;
+  const c = riskColor(o.fraud_risk_level);
+  const Icon = o.fraud_risk_level === "high" ? ShieldAlert : o.fraud_risk_level === "low" ? ShieldCheck : Shield;
+  return (
+    <span
+      title={`ফ্রড: ${c.label} · মোট ${o.fraud_total_orders ?? 0} · বাতিল ${o.fraud_total_cancelled ?? 0} · সফল ${o.fraud_success_ratio ?? 0}%`}
+      className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-medium ${c.bg} ${c.text}`}
+    >
+      <Icon className="h-3 w-3" /> {c.label}
+    </span>
+  );
 }

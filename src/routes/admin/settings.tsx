@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Shield } from "lucide-react";
+import { testBdCourierConnection } from "@/lib/fraud.functions";
 
 export const Route = createFileRoute("/admin/settings")({
   component: Settings,
@@ -24,15 +26,30 @@ function Settings() {
   const [settings, setSettings] = useState<any>(null);
   useEffect(() => { if (data?.settings) setSettings(data.settings); }, [data]);
 
+  const testConn = useServerFn(testBdCourierConnection);
+  const [testing, setTesting] = useState(false);
+
   const saveSettings = async () => {
     const { error } = await supabase.from("site_settings").update({
       delivery_fee_inside: Number(settings.delivery_fee_inside),
       delivery_fee_outside: Number(settings.delivery_fee_outside),
       advance_percent: Number(settings.advance_percent),
       contact_phone: settings.contact_phone, contact_email: settings.contact_email,
-    }).eq("id", 1);
+      fraud_check_enabled: !!settings.fraud_check_enabled,
+      fraud_auto_check_checkout: !!settings.fraud_auto_check_checkout,
+      fraud_auto_check_admin_create: !!settings.fraud_auto_check_admin_create,
+    } as any).eq("id", 1);
     if (error) { toast.error(error.message); return; }
     toast.success("সেটিংস আপডেট হয়েছে");
+  };
+
+  const runTest = async () => {
+    setTesting(true);
+    try {
+      const r: any = await testConn({});
+      if (r?.ok) toast.success("BD Courier সংযোগ সফল ✓");
+      else toast.error(r?.error || `সংযোগ ব্যর্থ (${r?.status ?? ""})`);
+    } finally { setTesting(false); }
   };
 
   const addAnn = async () => {
@@ -70,6 +87,30 @@ function Settings() {
           <button onClick={saveSettings} className="mt-4 h-10 px-5 rounded-md bg-primary text-primary-foreground text-sm font-medium">সংরক্ষণ</button>
         </Card>
       )}
+
+      {settings && (
+        <Card title={<span className="inline-flex items-center gap-2"><Shield className="h-4 w-4 text-amber-600" /> ফ্রড চেক (BD Courier)</span>}
+          action={<button onClick={runTest} disabled={testing} className="text-xs px-3 h-8 rounded-md border border-border disabled:opacity-50">{testing ? "টেস্টিং..." : "কানেকশন টেস্ট"}</button>}>
+          <div className="space-y-3 text-sm">
+            <div className="text-xs text-muted-foreground">API key পরিবর্তন করতে চাইলে ব্যাকএন্ড সিক্রেট হিসেবে <code className="px-1 py-0.5 rounded bg-muted">BDCOURIER_API_KEY</code> আপডেট করুন।</div>
+            <label className="flex items-center gap-3 p-3 border border-border rounded-md cursor-pointer">
+              <input type="checkbox" checked={!!settings.fraud_check_enabled} onChange={(e) => setSettings({ ...settings, fraud_check_enabled: e.target.checked })} />
+              <div><div className="font-medium">ফ্রড চেক সক্রিয়</div><div className="text-xs text-muted-foreground">এডমিন প্যানেল ও চেকআউটে ফ্রড স্ক্যান চালু/বন্ধ</div></div>
+            </label>
+            <label className="flex items-center gap-3 p-3 border border-border rounded-md cursor-pointer">
+              <input type="checkbox" checked={!!settings.fraud_auto_check_admin_create} onChange={(e) => setSettings({ ...settings, fraud_auto_check_admin_create: e.target.checked })} />
+              <div><div className="font-medium">এডমিন ম্যানুয়াল অর্ডারে অটো-চেক</div><div className="text-xs text-muted-foreground">নতুন ম্যানুয়াল অর্ডার তৈরির সময় ফোন স্ক্যান</div></div>
+            </label>
+            <label className="flex items-center gap-3 p-3 border border-border rounded-md cursor-pointer">
+              <input type="checkbox" checked={!!settings.fraud_auto_check_checkout} onChange={(e) => setSettings({ ...settings, fraud_auto_check_checkout: e.target.checked })} />
+              <div><div className="font-medium">চেকআউটে অটো-চেক</div><div className="text-xs text-muted-foreground">গ্রাহকের ফোন নম্বর প্লেস অর্ডারের আগে স্ক্যান (সেশন প্রতি একবার)</div></div>
+            </label>
+          </div>
+          <button onClick={saveSettings} className="mt-4 h-10 px-5 rounded-md bg-primary text-primary-foreground text-sm font-medium">সংরক্ষণ</button>
+        </Card>
+      )}
+
+
 
       <Card title="ঘোষণা (টপ বার)" action={<button onClick={addAnn} className="text-xs text-primary inline-flex items-center gap-1"><Plus className="h-3 w-3" /> যোগ করুন</button>}>
         <div className="space-y-2">
