@@ -139,11 +139,14 @@ function Checkout() {
       );
       if (itemErr) throw itemErr;
 
-      if (sessionIdRef.current) {
-        await supabase.from("incomplete_orders")
-          .update({ recovered: true, recovered_order_id: order.id, recovered_at: new Date().toISOString() })
-          .eq("session_id", sessionIdRef.current);
+      if (sessionIdRef.current && tokenRef.current) {
+        await supabase.rpc("mark_incomplete_order_recovered", {
+          p_session_id: sessionIdRef.current,
+          p_access_token: tokenRef.current,
+          p_order_id: order.id,
+        });
         localStorage.removeItem("medi-checkout-session");
+        localStorage.removeItem("medi-checkout-token");
       }
 
       clear();
