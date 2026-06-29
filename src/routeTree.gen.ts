@@ -32,6 +32,8 @@ import { Route as ShopProductsSlugRouteImport } from './routes/_shop/products/$s
 import { Route as ShopPolicyRefundRouteImport } from './routes/_shop/policy/refund'
 import { Route as ShopPolicyPrivacyRouteImport } from './routes/_shop/policy/privacy'
 import { Route as ShopOrderIdRouteImport } from './routes/_shop/order/$id'
+import { Route as ApiPublicUddoktapayCallbackRouteImport } from './routes/api/public/uddoktapay/callback'
+import { Route as ApiPaymentUddoktapayCreateRouteImport } from './routes/api/payment/uddoktapay/create'
 
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
@@ -147,6 +149,18 @@ const ShopOrderIdRoute = ShopOrderIdRouteImport.update({
   path: '/order/$id',
   getParentRoute: () => ShopRoute,
 } as any)
+const ApiPublicUddoktapayCallbackRoute =
+  ApiPublicUddoktapayCallbackRouteImport.update({
+    id: '/api/public/uddoktapay/callback',
+    path: '/api/public/uddoktapay/callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPaymentUddoktapayCreateRoute =
+  ApiPaymentUddoktapayCreateRouteImport.update({
+    id: '/api/payment/uddoktapay/create',
+    path: '/api/payment/uddoktapay/create',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof ShopIndexRoute
@@ -171,6 +185,8 @@ export interface FileRoutesByFullPath {
   '/policy/refund': typeof ShopPolicyRefundRoute
   '/products/$slug': typeof ShopProductsSlugRoute
   '/products/': typeof ShopProductsIndexRoute
+  '/api/payment/uddoktapay/create': typeof ApiPaymentUddoktapayCreateRoute
+  '/api/public/uddoktapay/callback': typeof ApiPublicUddoktapayCallbackRoute
 }
 export interface FileRoutesByTo {
   '/about': typeof ShopAboutRoute
@@ -194,6 +210,8 @@ export interface FileRoutesByTo {
   '/policy/refund': typeof ShopPolicyRefundRoute
   '/products/$slug': typeof ShopProductsSlugRoute
   '/products': typeof ShopProductsIndexRoute
+  '/api/payment/uddoktapay/create': typeof ApiPaymentUddoktapayCreateRoute
+  '/api/public/uddoktapay/callback': typeof ApiPublicUddoktapayCallbackRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -220,6 +238,8 @@ export interface FileRoutesById {
   '/_shop/policy/refund': typeof ShopPolicyRefundRoute
   '/_shop/products/$slug': typeof ShopProductsSlugRoute
   '/_shop/products/': typeof ShopProductsIndexRoute
+  '/api/payment/uddoktapay/create': typeof ApiPaymentUddoktapayCreateRoute
+  '/api/public/uddoktapay/callback': typeof ApiPublicUddoktapayCallbackRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -246,6 +266,8 @@ export interface FileRouteTypes {
     | '/policy/refund'
     | '/products/$slug'
     | '/products/'
+    | '/api/payment/uddoktapay/create'
+    | '/api/public/uddoktapay/callback'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/about'
@@ -269,6 +291,8 @@ export interface FileRouteTypes {
     | '/policy/refund'
     | '/products/$slug'
     | '/products'
+    | '/api/payment/uddoktapay/create'
+    | '/api/public/uddoktapay/callback'
   id:
     | '__root__'
     | '/_shop'
@@ -294,11 +318,15 @@ export interface FileRouteTypes {
     | '/_shop/policy/refund'
     | '/_shop/products/$slug'
     | '/_shop/products/'
+    | '/api/payment/uddoktapay/create'
+    | '/api/public/uddoktapay/callback'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   ShopRoute: typeof ShopRouteWithChildren
   AdminRoute: typeof AdminRouteWithChildren
+  ApiPaymentUddoktapayCreateRoute: typeof ApiPaymentUddoktapayCreateRoute
+  ApiPublicUddoktapayCallbackRoute: typeof ApiPublicUddoktapayCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -464,6 +492,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShopOrderIdRouteImport
       parentRoute: typeof ShopRoute
     }
+    '/api/public/uddoktapay/callback': {
+      id: '/api/public/uddoktapay/callback'
+      path: '/api/public/uddoktapay/callback'
+      fullPath: '/api/public/uddoktapay/callback'
+      preLoaderRoute: typeof ApiPublicUddoktapayCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/payment/uddoktapay/create': {
+      id: '/api/payment/uddoktapay/create'
+      path: '/api/payment/uddoktapay/create'
+      fullPath: '/api/payment/uddoktapay/create'
+      preLoaderRoute: typeof ApiPaymentUddoktapayCreateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -528,6 +570,8 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   ShopRoute: ShopRouteWithChildren,
   AdminRoute: AdminRouteWithChildren,
+  ApiPaymentUddoktapayCreateRoute: ApiPaymentUddoktapayCreateRoute,
+  ApiPublicUddoktapayCallbackRoute: ApiPublicUddoktapayCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
