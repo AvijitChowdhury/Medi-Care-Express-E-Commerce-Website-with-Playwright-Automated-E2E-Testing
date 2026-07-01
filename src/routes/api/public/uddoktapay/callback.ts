@@ -2,8 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 
 async function handle(request: Request) {
   const url = new URL(request.url);
-  const orderId = url.searchParams.get("order_id");
   let invoiceId = url.searchParams.get("invoice_id");
+  let orderId = url.searchParams.get("order_id");
 
   if (!invoiceId && request.method === "POST") {
     const ct = request.headers.get("content-type") || "";
@@ -11,6 +11,7 @@ async function handle(request: Request) {
       if (ct.includes("application/json")) {
         const j: any = await request.json();
         invoiceId = j.invoice_id ?? null;
+        orderId = orderId || j?.metadata?.order_id || null;
       } else {
         const fd = await request.formData();
         invoiceId = (fd.get("invoice_id") as string) ?? null;
@@ -41,10 +42,19 @@ async function handle(request: Request) {
     const data: any = await res.json().catch(() => ({}));
 
     const status = String(data?.status || "").toUpperCase();
-    const resolvedOrderId = orderId || data?.metadata?.order_id;
-    if (!resolvedOrderId) return failRedirect("order not identified");
-
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    // Resolve order_id: query param → metadata → lookup by invoice_id
+    let resolvedOrderId = orderId || data?.metadata?.order_id || null;
+    if (!resolvedOrderId) {
+      const { data: found } = await supabaseAdmin
+        .from("orders")
+        .select("id")
+        .eq("uddoktapay_invoice_id", invoiceId)
+        .maybeSingle();
+      resolvedOrderId = found?.id || null;
+    }
+    if (!resolvedOrderId) return failRedirect("order not identified");
 
     if (status !== "COMPLETED") {
       await supabaseAdmin
@@ -55,7 +65,7 @@ async function handle(request: Request) {
           payment_status: "unpaid",
         })
         .eq("id", resolvedOrderId);
-      return failRedirect(data?.status || "payment not completed");
+      return Response.redirect(`${origin}/order/${resolvedOrderId}?payment=failed`, 302);
     }
 
     const paid = Number(data?.amount ?? 0);
