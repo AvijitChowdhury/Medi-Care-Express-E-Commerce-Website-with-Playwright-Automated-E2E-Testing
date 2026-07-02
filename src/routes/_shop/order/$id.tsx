@@ -7,17 +7,30 @@ import jsPDF from "jspdf";
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { trackEvent } from "@/lib/fb-pixel";
+import { z } from "zod";
 
 export const Route = createFileRoute("/_shop/order/$id")({
+  validateSearch: z.object({
+    paid: z.string().optional(),
+    payment: z.string().optional(),
+  }),
   head: () => ({ meta: [{ title: "অর্ডার বিবরণী — মেডিকেয়ার" }] }),
   component: OrderPage,
 });
 
 function OrderPage() {
   const { id } = Route.useParams();
+  const { paid, payment } = Route.useSearch();
   const [retrying, setRetrying] = useState(false);
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, refetch } = useQuery({
     queryKey: ["order", id],
+    refetchInterval: (q) => {
+      // While the payment is being verified server-side, keep polling for the update.
+      if (paid !== "1") return false;
+      const o: any = (q.state.data as any)?.order;
+      if (o && (o.payment_status === "paid" || o.payment_status === "partial") && Number(o.paid_amount ?? 0) > 0) return false;
+      return 2500;
+    },
     queryFn: async () => {
       const { data: userData } = await supabase.auth.getUser();
       const guestToken = !userData.user ? (typeof window !== "undefined" ? localStorage.getItem(`medi-order-token-${id}`) : null) : null;
@@ -38,6 +51,22 @@ function OrderPage() {
       return { order: Array.isArray(orderArr) ? orderArr[0] : null, items: Array.isArray(itemsArr) ? itemsArr : [] };
     },
   });
+
+  // Announce payment result once when returning from the gateway.
+  const notifiedRef = useRef(false);
+  useEffect(() => {
+    if (notifiedRef.current) return;
+    const o: any = data?.order;
+    if (!o) return;
+    if (paid === "1" && (o.payment_status === "paid" || (o.payment_status === "partial" && Number(o.paid_amount ?? 0) > 0))) {
+      notifiedRef.current = true;
+      toast.success("পেমেন্ট নিশ্চিত হয়েছে");
+      refetch();
+    } else if (payment === "failed") {
+      notifiedRef.current = true;
+      toast.error("পেমেন্ট ব্যর্থ হয়েছে, আবার চেষ্টা করুন");
+    }
+  }, [data, paid, payment, refetch]);
 
 
   const firedRef = useRef(false);
@@ -80,7 +109,22 @@ function OrderPage() {
     y += 4;
     doc.text(`Subtotal: Tk ${Math.round(o.subtotal)}`, 14, y); y += 6;
     doc.text(`Delivery: Tk ${Math.round(o.delivery_fee)}`, 14, y); y += 6;
-    doc.setFontSize(12); doc.text(`Total: Tk ${Math.round(o.total)}`, 14, y);
+    doc.setFontSize(12); doc.text(`Total: Tk ${Math.round(o.total)}`, 14, y); y += 10;
+
+    // Payment details
+    doc.setFontSize(11); doc.text("Payment", 14, y); y += 6;
+    doc.setFontSize(10);
+    const payLabel = o.payment_method === "partial_online" ? "Partial Online (UddoktaPay)" : (o.payment_method || "COD");
+    doc.text(`Method: ${payLabel}`, 14, y); y += 6;
+    const statusLabel = o.payment_status === "paid" ? "PAID" : o.payment_status === "partial" ? "PARTIALLY PAID" : "UNPAID";
+    doc.text(`Status: ${statusLabel}`, 14, y); y += 6;
+    if (Number(o.paid_amount ?? 0) > 0) { doc.text(`Paid: Tk ${Math.round(o.paid_amount)}`, 14, y); y += 6; }
+    if (Number(o.due_amount ?? 0) > 0) { doc.text(`Due (on delivery): Tk ${Math.round(o.due_amount)}`, 14, y); y += 6; }
+    if (o.uddoktapay_payment_method) { doc.text(`Gateway: ${o.uddoktapay_payment_method}`, 14, y); y += 6; }
+    if (o.uddoktapay_transaction_id) { doc.text(`Transaction ID: ${o.uddoktapay_transaction_id}`, 14, y); y += 6; }
+    if (o.uddoktapay_sender_number) { doc.text(`Sender: ${o.uddoktapay_sender_number}`, 14, y); y += 6; }
+    if (o.uddoktapay_invoice_id) { doc.text(`Invoice Ref: ${o.uddoktapay_invoice_id}`, 14, y); y += 6; }
+
     doc.save(`invoice-${shortId}.pdf`);
   };
 
@@ -102,10 +146,20 @@ function OrderPage() {
     }
   };
 
+  const isPaid = o.payment_status === "paid";
+  const isPartial = o.payment_status === "partial" && Number(o.paid_amount ?? 0) > 0;
+  const verifying = paid === "1" && !isPaid && !isPartial && o.payment_method === "partial_online";
+
   return (
     <div className="container mx-auto px-4 py-8 md:py-12 max-w-3xl">
       <div className="bg-card border border-border rounded-2xl p-8 text-center">
-        {needsPayment ? (
+        {verifying ? (
+          <>
+            <RotateCw className="h-14 w-14 mx-auto text-primary animate-spin" />
+            <h1 className="mt-4 text-2xl font-semibold">পেমেন্ট যাচাই হচ্ছে...</h1>
+            <p className="mt-2 text-sm text-muted-foreground">অনুগ্রহ করে অপেক্ষা করুন, আপনার পেমেন্ট নিশ্চিত করা হচ্ছে।</p>
+          </>
+        ) : needsPayment ? (
           <>
             <AlertCircle className="h-14 w-14 mx-auto text-amber-500" />
             <h1 className="mt-4 text-2xl font-semibold">পেমেন্ট অসম্পূর্ণ</h1>
@@ -116,10 +170,16 @@ function OrderPage() {
             <CheckCircle2 className="h-14 w-14 mx-auto text-primary" />
             <h1 className="mt-4 text-2xl font-semibold">ধন্যবাদ! অর্ডার নিশ্চিত হয়েছে</h1>
             <p className="mt-2 text-sm text-muted-foreground">আপনার অর্ডার নম্বর <span className="font-mono font-semibold text-foreground">#{shortId}</span></p>
+            {(isPaid || isPartial) && (
+              <div className="mt-4 inline-flex items-center gap-2 bg-emerald-500/10 text-emerald-600 px-4 py-1.5 rounded-full text-sm font-medium">
+                <CheckCircle2 className="h-4 w-4" />
+                {isPaid ? "পেমেন্ট সম্পন্ন" : `অগ্রিম পরিশোধিত: ${taka(o.paid_amount)}`}
+              </div>
+            )}
           </>
         )}
         <div className="mt-6 flex justify-center gap-3 flex-wrap">
-          {needsPayment && (
+          {needsPayment && !verifying && (
             <button disabled={retrying} onClick={retryPayment} className="h-11 px-5 rounded-md bg-amber-500 hover:bg-amber-600 text-white text-sm inline-flex items-center gap-2 disabled:opacity-60">
               <RotateCw className={`h-4 w-4 ${retrying ? "animate-spin" : ""}`} /> {retrying ? "প্রসেস হচ্ছে..." : "পেমেন্ট আবার চেষ্টা করুন"}
             </button>
@@ -130,6 +190,7 @@ function OrderPage() {
           <Link to="/track" search={{ id: shortId } as any} className="h-11 px-5 rounded-md border border-border text-sm inline-flex items-center">অর্ডার ট্র্যাক করুন</Link>
         </div>
       </div>
+
 
       <div className="mt-6 bg-card border border-border rounded-2xl p-6">
         <h2 className="font-semibold">অর্ডার বিবরণী</h2>
