@@ -157,7 +157,12 @@ function Checkout() {
     });
     try {
       const { data: userData } = await supabase.auth.getUser();
-      const { data: order, error } = await supabase.from("orders").insert({
+      const orderId = crypto.randomUUID();
+      const guestOrderToken = userData.user ? null : crypto.randomUUID();
+      const order = { id: orderId, access_token: guestOrderToken };
+      const { error } = await supabase.from("orders").insert({
+        id: orderId,
+        ...(guestOrderToken ? { access_token: guestOrderToken } : {}),
         user_id: userData.user?.id ?? null,
         customer_name: form.name,
         customer_phone: form.phone,
@@ -177,7 +182,7 @@ function Checkout() {
         status: "pending",
         is_complete: true,
         notes: form.notes || null,
-      } as any).select().single();
+      } as any);
 
       if (error) throw error;
 
@@ -209,8 +214,8 @@ function Checkout() {
       }
 
       // Save guest order token so the order page can read it back via RLS
-      if (!userData.user && (order as any).access_token) {
-        try { localStorage.setItem(`medi-order-token-${order.id}`, (order as any).access_token); } catch {}
+      if (!userData.user && order.access_token) {
+        try { localStorage.setItem(`medi-order-token-${order.id}`, order.access_token); } catch {}
       }
 
 
