@@ -20,9 +20,17 @@ export const Route = createFileRoute("/_shop/order/$id")({
 
 function OrderPage() {
   const { id } = Route.useParams();
+  const { paid, payment } = Route.useSearch();
   const [retrying, setRetrying] = useState(false);
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, refetch } = useQuery({
     queryKey: ["order", id],
+    refetchInterval: (q) => {
+      // While the payment is being verified server-side, keep polling for the update.
+      if (paid !== "1") return false;
+      const o: any = (q.state.data as any)?.order;
+      if (o && (o.payment_status === "paid" || o.payment_status === "partial") && Number(o.paid_amount ?? 0) > 0) return false;
+      return 2500;
+    },
     queryFn: async () => {
       const { data: userData } = await supabase.auth.getUser();
       const guestToken = !userData.user ? (typeof window !== "undefined" ? localStorage.getItem(`medi-order-token-${id}`) : null) : null;
@@ -43,6 +51,22 @@ function OrderPage() {
       return { order: Array.isArray(orderArr) ? orderArr[0] : null, items: Array.isArray(itemsArr) ? itemsArr : [] };
     },
   });
+
+  // Announce payment result once when returning from the gateway.
+  const notifiedRef = useRef(false);
+  useEffect(() => {
+    if (notifiedRef.current) return;
+    const o: any = data?.order;
+    if (!o) return;
+    if (paid === "1" && (o.payment_status === "paid" || (o.payment_status === "partial" && Number(o.paid_amount ?? 0) > 0))) {
+      notifiedRef.current = true;
+      toast.success("পেমেন্ট নিশ্চিত হয়েছে");
+      refetch();
+    } else if (payment === "failed") {
+      notifiedRef.current = true;
+      toast.error("পেমেন্ট ব্যর্থ হয়েছে, আবার চেষ্টা করুন");
+    }
+  }, [data, paid, payment, refetch]);
 
 
   const firedRef = useRef(false);
