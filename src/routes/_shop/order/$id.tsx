@@ -13,6 +13,7 @@ export const Route = createFileRoute("/_shop/order/$id")({
   validateSearch: z.object({
     paid: z.string().optional(),
     payment: z.string().optional(),
+    awaiting: z.string().optional(),
   }),
   head: () => ({ meta: [{ title: "অর্ডার বিবরণী — মেডিকেয়ার" }] }),
   component: OrderPage,
@@ -20,13 +21,13 @@ export const Route = createFileRoute("/_shop/order/$id")({
 
 function OrderPage() {
   const { id } = Route.useParams();
-  const { paid, payment } = Route.useSearch();
+  const { paid, payment, awaiting } = Route.useSearch();
   const [retrying, setRetrying] = useState(false);
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["order", id],
     refetchInterval: (q) => {
-      // While the payment is being verified server-side, keep polling for the update.
-      if (paid !== "1") return false;
+      // Poll while the gateway tab is open or the callback is being verified.
+      if (paid !== "1" && awaiting !== "1") return false;
       const o: any = (q.state.data as any)?.order;
       if (o && (o.payment_status === "paid" || o.payment_status === "partial") && Number(o.paid_amount ?? 0) > 0) return false;
       return 2500;
@@ -149,6 +150,8 @@ function OrderPage() {
   const isPaid = o.payment_status === "paid";
   const isPartial = o.payment_status === "partial" && Number(o.paid_amount ?? 0) > 0;
   const verifying = paid === "1" && !isPaid && !isPartial && o.payment_method === "partial_online";
+  const isAwaiting = awaiting === "1" && !isPaid && !isPartial && o.payment_method === "partial_online";
+  const paymentFailed = payment === "failed";
 
   return (
     <div className="container mx-auto px-4 py-8 md:py-12 max-w-3xl">
@@ -159,10 +162,16 @@ function OrderPage() {
             <h1 className="mt-4 text-2xl font-semibold">পেমেন্ট যাচাই হচ্ছে...</h1>
             <p className="mt-2 text-sm text-muted-foreground">অনুগ্রহ করে অপেক্ষা করুন, আপনার পেমেন্ট নিশ্চিত করা হচ্ছে।</p>
           </>
+        ) : isAwaiting ? (
+          <>
+            <RotateCw className="h-14 w-14 mx-auto text-primary animate-spin" />
+            <h1 className="mt-4 text-2xl font-semibold">পেমেন্টের অপেক্ষায়</h1>
+            <p className="mt-2 text-sm text-muted-foreground">অর্ডার <span className="font-mono font-semibold text-foreground">#{shortId}</span> তৈরি হয়েছে। পাশের ট্যাবে পেমেন্ট সম্পন্ন করুন — এই পেজ স্বয়ংক্রিয়ভাবে আপডেট হবে।</p>
+          </>
         ) : needsPayment ? (
           <>
             <AlertCircle className="h-14 w-14 mx-auto text-amber-500" />
-            <h1 className="mt-4 text-2xl font-semibold">পেমেন্ট অসম্পূর্ণ</h1>
+            <h1 className="mt-4 text-2xl font-semibold">{paymentFailed ? "পেমেন্ট ব্যর্থ হয়েছে" : "পেমেন্ট অসম্পূর্ণ"}</h1>
             <p className="mt-2 text-sm text-muted-foreground">অর্ডার নম্বর <span className="font-mono font-semibold text-foreground">#{shortId}</span> এর পেমেন্ট সম্পন্ন হয়নি। আবার চেষ্টা করুন।</p>
           </>
         ) : (
@@ -181,7 +190,7 @@ function OrderPage() {
         <div className="mt-6 flex justify-center gap-3 flex-wrap">
           {needsPayment && !verifying && (
             <button disabled={retrying} onClick={retryPayment} className="h-11 px-5 rounded-md bg-amber-500 hover:bg-amber-600 text-white text-sm inline-flex items-center gap-2 disabled:opacity-60">
-              <RotateCw className={`h-4 w-4 ${retrying ? "animate-spin" : ""}`} /> {retrying ? "প্রসেস হচ্ছে..." : "পেমেন্ট আবার চেষ্টা করুন"}
+              <RotateCw className={`h-4 w-4 ${retrying ? "animate-spin" : ""}`} /> {retrying ? "প্রসেস হচ্ছে..." : (isAwaiting ? "পেমেন্ট পেজ আবার খুলুন" : "পেমেন্ট আবার চেষ্টা করুন")}
             </button>
           )}
           <button onClick={downloadInvoice} className="h-11 px-5 rounded-md bg-primary text-primary-foreground text-sm inline-flex items-center gap-2">
@@ -190,6 +199,7 @@ function OrderPage() {
           <Link to="/track" search={{ id: shortId } as any} className="h-11 px-5 rounded-md border border-border text-sm inline-flex items-center">অর্ডার ট্র্যাক করুন</Link>
         </div>
       </div>
+
 
 
       <div className="mt-6 bg-card border border-border rounded-2xl p-6">
