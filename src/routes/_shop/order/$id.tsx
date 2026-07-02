@@ -21,13 +21,13 @@ export const Route = createFileRoute("/_shop/order/$id")({
 
 function OrderPage() {
   const { id } = Route.useParams();
-  const { paid, payment } = Route.useSearch();
+  const { paid, payment, awaiting } = Route.useSearch();
   const [retrying, setRetrying] = useState(false);
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["order", id],
     refetchInterval: (q) => {
-      // While the payment is being verified server-side, keep polling for the update.
-      if (paid !== "1") return false;
+      // Poll while the gateway tab is open or the callback is being verified.
+      if (paid !== "1" && awaiting !== "1") return false;
       const o: any = (q.state.data as any)?.order;
       if (o && (o.payment_status === "paid" || o.payment_status === "partial") && Number(o.paid_amount ?? 0) > 0) return false;
       return 2500;
