@@ -146,10 +146,20 @@ function OrderPage() {
     }
   };
 
+  const isPaid = o.payment_status === "paid";
+  const isPartial = o.payment_status === "partial" && Number(o.paid_amount ?? 0) > 0;
+  const verifying = paid === "1" && !isPaid && !isPartial && o.payment_method === "partial_online";
+
   return (
     <div className="container mx-auto px-4 py-8 md:py-12 max-w-3xl">
       <div className="bg-card border border-border rounded-2xl p-8 text-center">
-        {needsPayment ? (
+        {verifying ? (
+          <>
+            <RotateCw className="h-14 w-14 mx-auto text-primary animate-spin" />
+            <h1 className="mt-4 text-2xl font-semibold">পেমেন্ট যাচাই হচ্ছে...</h1>
+            <p className="mt-2 text-sm text-muted-foreground">অনুগ্রহ করে অপেক্ষা করুন, আপনার পেমেন্ট নিশ্চিত করা হচ্ছে।</p>
+          </>
+        ) : needsPayment ? (
           <>
             <AlertCircle className="h-14 w-14 mx-auto text-amber-500" />
             <h1 className="mt-4 text-2xl font-semibold">পেমেন্ট অসম্পূর্ণ</h1>
@@ -160,10 +170,16 @@ function OrderPage() {
             <CheckCircle2 className="h-14 w-14 mx-auto text-primary" />
             <h1 className="mt-4 text-2xl font-semibold">ধন্যবাদ! অর্ডার নিশ্চিত হয়েছে</h1>
             <p className="mt-2 text-sm text-muted-foreground">আপনার অর্ডার নম্বর <span className="font-mono font-semibold text-foreground">#{shortId}</span></p>
+            {(isPaid || isPartial) && (
+              <div className="mt-4 inline-flex items-center gap-2 bg-emerald-500/10 text-emerald-600 px-4 py-1.5 rounded-full text-sm font-medium">
+                <CheckCircle2 className="h-4 w-4" />
+                {isPaid ? "পেমেন্ট সম্পন্ন" : `অগ্রিম পরিশোধিত: ${taka(o.paid_amount)}`}
+              </div>
+            )}
           </>
         )}
         <div className="mt-6 flex justify-center gap-3 flex-wrap">
-          {needsPayment && (
+          {needsPayment && !verifying && (
             <button disabled={retrying} onClick={retryPayment} className="h-11 px-5 rounded-md bg-amber-500 hover:bg-amber-600 text-white text-sm inline-flex items-center gap-2 disabled:opacity-60">
               <RotateCw className={`h-4 w-4 ${retrying ? "animate-spin" : ""}`} /> {retrying ? "প্রসেস হচ্ছে..." : "পেমেন্ট আবার চেষ্টা করুন"}
             </button>
@@ -174,6 +190,7 @@ function OrderPage() {
           <Link to="/track" search={{ id: shortId } as any} className="h-11 px-5 rounded-md border border-border text-sm inline-flex items-center">অর্ডার ট্র্যাক করুন</Link>
         </div>
       </div>
+
 
       <div className="mt-6 bg-card border border-border rounded-2xl p-6">
         <h2 className="font-semibold">অর্ডার বিবরণী</h2>
