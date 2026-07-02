@@ -1,5 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+function uddoktaApiUrl(baseUrl: string, path: string) {
+  const trimmed = baseUrl.replace(/\/+$/, "");
+  const apiBase = trimmed.endsWith("/api") ? trimmed : `${trimmed}/api`;
+  return `${apiBase}${path.startsWith("/") ? path : `/${path}`}`;
+}
+
 async function handle(request: Request) {
   const url = new URL(request.url);
   let invoiceId = url.searchParams.get("invoice_id");
@@ -30,7 +36,7 @@ async function handle(request: Request) {
   if (!apiKey || !baseUrl) return failRedirect("gateway not configured");
 
   try {
-    const res = await fetch(`${baseUrl.replace(/\/$/, "")}/verify-payment`, {
+    const res = await fetch(uddoktaApiUrl(baseUrl, "/verify-payment"), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -68,7 +74,7 @@ async function handle(request: Request) {
       return Response.redirect(`${origin}/order/${resolvedOrderId}?payment=failed`, 302);
     }
 
-    const paid = Number(data?.amount ?? 0);
+    const paid = Number(data?.amount ?? data?.charged_amount ?? 0);
     const { data: order } = await supabaseAdmin
       .from("orders")
       .select("total")

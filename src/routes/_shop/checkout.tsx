@@ -48,6 +48,7 @@ function Checkout() {
   const [couponInput, setCouponInput] = useState("");
   const [coupon, setCoupon] = useState<{ code: string; discount: number } | null>(null);
   const [couponBusy, setCouponBusy] = useState(false);
+  const [paymentFallbackUrl, setPaymentFallbackUrl] = useState<string | null>(null);
 
 
   useEffect(() => {
@@ -123,6 +124,14 @@ function Checkout() {
       toast.error("সব তথ্য পূরণ করুন");
       return;
     }
+    setPaymentFallbackUrl(null);
+    let paymentWindow: Window | null = null;
+    if (form.payment === "partial_online" && typeof window !== "undefined") {
+      paymentWindow = window.open("", "_blank");
+      if (paymentWindow) {
+        paymentWindow.document.write("<title>Payment loading</title><body style='font-family:sans-serif;padding:32px'>Payment page is loading...</body>");
+      }
+    }
     // Optional fraud check (admin-controlled via site_settings.fraud_auto_check_checkout)
     try {
       const { data: sRows } = await supabase.rpc("get_checkout_fraud_flags");
@@ -131,7 +140,10 @@ function Checkout() {
         const fr: any = await checkFraudCached(form.phone);
         if (fr?.ok && fr.risk_level === "high") {
           const ok = confirm(`⚠️ এই নম্বরে পূর্বের কুরিয়ার ইতিহাসে ঝুঁকি পাওয়া গেছে (সফলতা ${fr.success_ratio}%).\nতবুও অর্ডার চালিয়ে যাবেন?`);
-          if (!ok) return;
+          if (!ok) {
+            paymentWindow?.close();
+            return;
+          }
         }
       }
     } catch {}
@@ -145,7 +157,12 @@ function Checkout() {
     });
     try {
       const { data: userData } = await supabase.auth.getUser();
-      const { data: order, error } = await supabase.from("orders").insert({
+      const orderId = crypto.randomUUID();
+      const guestOrderToken = userData.user ? null : crypto.randomUUID();
+      const order = { id: orderId, access_token: guestOrderToken };
+      const { error } = await supabase.from("orders").insert({
+        id: orderId,
+        ...(guestOrderToken ? { access_token: guestOrderToken } : {}),
         user_id: userData.user?.id ?? null,
         customer_name: form.name,
         customer_phone: form.phone,
@@ -159,13 +176,13 @@ function Checkout() {
         coupon_code: coupon?.code ?? null,
         total,
         payment_method: form.payment,
-        payment_status: form.payment === "partial_online" ? "partial" : "unpaid",
+        payment_status: "unpaid",
         paid_amount: 0,
-        due_amount: due,
+        due_amount: form.payment === "partial_online" ? total : due,
         status: "pending",
         is_complete: true,
         notes: form.notes || null,
-      } as any).select().single();
+      } as any);
 
       if (error) throw error;
 
@@ -197,8 +214,8 @@ function Checkout() {
       }
 
       // Save guest order token so the order page can read it back via RLS
-      if (!userData.user && (order as any).access_token) {
-        try { localStorage.setItem(`medi-order-token-${order.id}`, (order as any).access_token); } catch {}
+      if (!userData.user && order.access_token) {
+        try { localStorage.setItem(`medi-order-token-${order.id}`, order.access_token); } catch {}
       }
 
 
@@ -214,33 +231,19 @@ function Checkout() {
           throw new Error(json.error || "পেমেন্ট গেটওয়ে সংযোগ ব্যর্থ");
         }
         clear();
-        // Gateway sends X-Frame-Options: SAMEORIGIN — cannot load in any iframe (Lovable preview, etc.).
-        // Try top-window navigation; if blocked by cross-origin sandbox, open in a new tab.
         const url = json.payment_url as string;
-        let navigated = false;
-        try {
-          if (window.top && window.top !== window.self) {
-            (window.top as Window).location.href = url;
-            navigated = true;
+        if (paymentWindow && !paymentWindow.closed) {
+          paymentWindow.location.replace(url);
+          toast.success("পেমেন্ট পেজ নতুন ট্যাবে খোলা হয়েছে");
+          navigate({ to: "/order/$id", params: { id: order.id } });
+        } else {
+          const win = window.open(url, "_blank");
+          if (win) {
+            toast.success("পেমেন্ট পেজ নতুন ট্যাবে খোলা হয়েছে");
+            navigate({ to: "/order/$id", params: { id: order.id } });
           } else {
-            window.location.href = url;
-            navigated = true;
-          }
-        } catch {
-          navigated = false;
-        }
-        if (!navigated) {
-          const win = window.open(url, "_blank", "noopener,noreferrer");
-          if (!win) {
+            setPaymentFallbackUrl(url);
             toast.info("পেমেন্ট পেজ খুলতে নিচের বাটনে ক্লিক করুন");
-            // Render a fallback link the user can click (popup blocker safe)
-            const a = document.createElement("a");
-            a.href = url;
-            a.target = "_blank";
-            a.rel = "noopener noreferrer";
-            a.textContent = "পেমেন্ট সম্পন্ন করুন";
-            a.className = "fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] px-6 py-3 rounded-full bg-emerald-600 text-white shadow-lg";
-            document.body.appendChild(a);
           }
         }
         return;
@@ -250,6 +253,7 @@ function Checkout() {
       toast.success("অর্ডার সফলভাবে দেওয়া হয়েছে");
       navigate({ to: "/order/$id", params: { id: order.id } });
     } catch (err: any) {
+      paymentWindow?.close();
       console.error(err);
       toast.error(err.message || "অর্ডার দিতে সমস্যা হয়েছে");
     } finally {
@@ -265,6 +269,13 @@ function Checkout() {
         <div className="mt-4 bg-primary/5 border border-primary/20 rounded-lg p-4 text-sm flex flex-wrap items-center justify-between gap-3">
           <span>আপনি গেস্ট হিসেবে অর্ডার দিচ্ছেন। অর্ডার ট্র্যাক ও ইতিহাস সংরক্ষণের জন্য চাইলে লগইন করতে পারেন।</span>
           <Link to="/login" className="inline-flex h-9 px-4 items-center rounded-md bg-primary text-primary-foreground text-xs font-medium">লগইন করুন</Link>
+        </div>
+      )}
+
+      {paymentFallbackUrl && (
+        <div className="mt-4 bg-primary/5 border border-primary/20 rounded-lg p-4 text-sm flex flex-wrap items-center justify-between gap-3">
+          <span>পেমেন্ট পেজ অটোমেটিক খোলেনি। নিচের বাটনে ক্লিক করে পেমেন্ট সম্পন্ন করুন।</span>
+          <a href={paymentFallbackUrl} target="_blank" rel="noopener noreferrer" className="inline-flex h-10 px-5 items-center rounded-md bg-primary text-primary-foreground text-sm font-medium">পেমেন্ট করুন</a>
         </div>
       )}
 
