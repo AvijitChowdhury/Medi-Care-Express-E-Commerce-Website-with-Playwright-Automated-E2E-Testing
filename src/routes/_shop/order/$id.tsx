@@ -7,8 +7,13 @@ import jsPDF from "jspdf";
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { trackEvent } from "@/lib/fb-pixel";
+import { z } from "zod";
 
 export const Route = createFileRoute("/_shop/order/$id")({
+  validateSearch: z.object({
+    paid: z.string().optional(),
+    payment: z.string().optional(),
+  }),
   head: () => ({ meta: [{ title: "অর্ডার বিবরণী — মেডিকেয়ার" }] }),
   component: OrderPage,
 });
