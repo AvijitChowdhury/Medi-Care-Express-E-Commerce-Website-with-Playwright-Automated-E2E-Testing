@@ -809,6 +809,7 @@ export type Database = {
           discount_value: number
         }[]
       }
+      can_insert_order_item: { Args: { p_order_id: string }; Returns: boolean }
       get_chat_messages: {
         Args: { p_access_token: string; p_session_id: string }
         Returns: {
