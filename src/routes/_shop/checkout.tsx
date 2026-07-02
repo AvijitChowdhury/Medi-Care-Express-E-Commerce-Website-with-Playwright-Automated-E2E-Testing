@@ -235,12 +235,12 @@ function Checkout() {
         if (paymentWindow && !paymentWindow.closed) {
           paymentWindow.location.replace(url);
           toast.success("পেমেন্ট পেজ নতুন ট্যাবে খোলা হয়েছে");
-          navigate({ to: "/order/$id", params: { id: order.id } });
+          navigate({ to: "/order/$id", params: { id: order.id }, search: { awaiting: "1" } as any });
         } else {
           const win = window.open(url, "_blank");
           if (win) {
             toast.success("পেমেন্ট পেজ নতুন ট্যাবে খোলা হয়েছে");
-            navigate({ to: "/order/$id", params: { id: order.id } });
+            navigate({ to: "/order/$id", params: { id: order.id }, search: { awaiting: "1" } as any });
           } else {
             setPaymentFallbackUrl(url);
             toast.info("পেমেন্ট পেজ খুলতে নিচের বাটনে ক্লিক করুন");
