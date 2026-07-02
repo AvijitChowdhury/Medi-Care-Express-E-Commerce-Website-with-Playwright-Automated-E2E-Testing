@@ -13,6 +13,7 @@ export const Route = createFileRoute("/_shop/order/$id")({
   validateSearch: z.object({
     paid: z.string().optional(),
     payment: z.string().optional(),
+    awaiting: z.string().optional(),
   }),
   head: () => ({ meta: [{ title: "অর্ডার বিবরণী — মেডিকেয়ার" }] }),
   component: OrderPage,
