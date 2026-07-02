@@ -109,7 +109,22 @@ function OrderPage() {
     y += 4;
     doc.text(`Subtotal: Tk ${Math.round(o.subtotal)}`, 14, y); y += 6;
     doc.text(`Delivery: Tk ${Math.round(o.delivery_fee)}`, 14, y); y += 6;
-    doc.setFontSize(12); doc.text(`Total: Tk ${Math.round(o.total)}`, 14, y);
+    doc.setFontSize(12); doc.text(`Total: Tk ${Math.round(o.total)}`, 14, y); y += 10;
+
+    // Payment details
+    doc.setFontSize(11); doc.text("Payment", 14, y); y += 6;
+    doc.setFontSize(10);
+    const payLabel = o.payment_method === "partial_online" ? "Partial Online (UddoktaPay)" : (o.payment_method || "COD");
+    doc.text(`Method: ${payLabel}`, 14, y); y += 6;
+    const statusLabel = o.payment_status === "paid" ? "PAID" : o.payment_status === "partial" ? "PARTIALLY PAID" : "UNPAID";
+    doc.text(`Status: ${statusLabel}`, 14, y); y += 6;
+    if (Number(o.paid_amount ?? 0) > 0) { doc.text(`Paid: Tk ${Math.round(o.paid_amount)}`, 14, y); y += 6; }
+    if (Number(o.due_amount ?? 0) > 0) { doc.text(`Due (on delivery): Tk ${Math.round(o.due_amount)}`, 14, y); y += 6; }
+    if (o.uddoktapay_payment_method) { doc.text(`Gateway: ${o.uddoktapay_payment_method}`, 14, y); y += 6; }
+    if (o.uddoktapay_transaction_id) { doc.text(`Transaction ID: ${o.uddoktapay_transaction_id}`, 14, y); y += 6; }
+    if (o.uddoktapay_sender_number) { doc.text(`Sender: ${o.uddoktapay_sender_number}`, 14, y); y += 6; }
+    if (o.uddoktapay_invoice_id) { doc.text(`Invoice Ref: ${o.uddoktapay_invoice_id}`, 14, y); y += 6; }
+
     doc.save(`invoice-${shortId}.pdf`);
   };
 
