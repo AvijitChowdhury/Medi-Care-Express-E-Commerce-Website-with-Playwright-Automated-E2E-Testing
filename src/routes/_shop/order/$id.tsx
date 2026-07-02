@@ -84,7 +84,7 @@ function OrderPage() {
     doc.save(`invoice-${shortId}.pdf`);
   };
 
-  const needsPayment = o.payment_method === "partial_online" && o.payment_status !== "paid" && o.payment_status !== "partial";
+  const needsPayment = o.payment_method === "partial_online" && o.payment_status !== "paid" && (o.payment_status !== "partial" || Number(o.paid_amount ?? 0) <= 0);
   const retryPayment = async () => {
     setRetrying(true);
     try {

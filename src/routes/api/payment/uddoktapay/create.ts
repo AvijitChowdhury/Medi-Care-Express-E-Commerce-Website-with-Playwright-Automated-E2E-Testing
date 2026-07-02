@@ -6,6 +6,12 @@ const CORS = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
+function uddoktaApiUrl(baseUrl: string, path: string) {
+  const trimmed = baseUrl.replace(/\/+$/, "");
+  const apiBase = trimmed.endsWith("/api") ? trimmed : `${trimmed}/api`;
+  return `${apiBase}${path.startsWith("/") ? path : `/${path}`}`;
+}
+
 export const Route = createFileRoute("/api/payment/uddoktapay/create")({
   server: {
     handlers: {
@@ -29,12 +35,20 @@ export const Route = createFileRoute("/api/payment/uddoktapay/create")({
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           const { data: order, error } = await supabaseAdmin
             .from("orders")
-            .select("id, order_number, customer_name, customer_email, customer_phone, subtotal, delivery_fee, total, payment_method, due_amount")
+            .select("id, order_number, customer_name, customer_email, customer_phone, subtotal, delivery_fee, total, payment_method, payment_status, paid_amount, due_amount")
             .eq("id", body.order_id)
             .maybeSingle();
 
           if (error || !order) {
             return Response.json({ error: "Order not found" }, { status: 404, headers: CORS });
+          }
+
+          if (order.payment_method !== "partial_online") {
+            return Response.json({ error: "এই অর্ডারের জন্য অনলাইন পেমেন্ট চালু নয়" }, { status: 400, headers: CORS });
+          }
+
+          if (Number(order.paid_amount || 0) > 0 && order.payment_status !== "unpaid") {
+            return Response.json({ error: "এই অর্ডারের অগ্রিম পেমেন্ট ইতোমধ্যে নেওয়া হয়েছে" }, { status: 400, headers: CORS });
           }
 
           // Partial online payment: charge delivery fee upfront, rest is COD
@@ -60,9 +74,10 @@ export const Route = createFileRoute("/api/payment/uddoktapay/create")({
             redirect_url: redirectUrl,
             return_type: "GET",
             cancel_url: cancelUrl,
+            webhook_url: redirectUrl,
           };
 
-          const res = await fetch(`${baseUrl.replace(/\/$/, "")}/checkout-v2`, {
+          const res = await fetch(uddoktaApiUrl(baseUrl, "/checkout-v2"), {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
