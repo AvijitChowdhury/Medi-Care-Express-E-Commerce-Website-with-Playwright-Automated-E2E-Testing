@@ -1,0 +1,47 @@
+graph TB
+  subgraph Client["Browser (Client)"]
+    UI[React 19 UI<br/>shadcn/ui + Tailwind v4]
+    Router[TanStack Router<br/>File-based Routes]
+    Query[TanStack Query<br/>Cache & SWR]
+    Cart[Zustand Cart Store<br/>localStorage]
+  end
+
+  subgraph Edge["Edge Runtime (Cloudflare Workers)"]
+    SSR[TanStack Start SSR<br/>Vite 7 build]
+    ServerFns[Server Functions<br/>createServerFn]
+    APIRoutes[Public API Routes<br/>/api/public/*]
+  end
+
+  subgraph Backend["Backend Services (Supabase)"]
+    Auth[Auth<br/>Email + OAuth]
+    DB[(PostgreSQL<br/>RLS Policies)]
+    Storage[Object Storage<br/>Product images]
+  end
+
+  subgraph External["External Integrations"]
+    Uddokta[UddoktaPay<br/>bKash / Nagad / Rocket]
+    Steadfast[Steadfast Courier<br/>Delivery API]
+    FBP[Facebook Pixel + CAPI<br/>Ad tracking]
+  end
+
+  subgraph QA["Quality Assurance"]
+    PW[Playwright Python<br/>pytest-playwright]
+    Allure[Allure Reports<br/>HTML dashboards]
+  end
+
+  UI --> Router --> Query
+  UI --> Cart
+  Query --> ServerFns
+  Router --> SSR
+  SSR --> ServerFns
+  ServerFns --> DB
+  ServerFns --> Auth
+  APIRoutes --> Uddokta
+  APIRoutes --> Steadfast
+  APIRoutes --> FBP
+  APIRoutes --> DB
+  Uddokta -.webhook.-> APIRoutes
+  Steadfast -.webhook.-> APIRoutes
+
+  PW -.tests.-> UI
+  PW --> Allure
