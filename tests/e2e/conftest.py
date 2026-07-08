@@ -41,6 +41,6 @@ def pytest_runtest_makereport(item, call):
     setattr(item, f"rep_{rep.when}", rep)
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def base_url():
     return BASE_URL
