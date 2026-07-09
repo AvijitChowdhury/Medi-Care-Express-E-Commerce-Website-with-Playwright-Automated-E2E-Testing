@@ -12,6 +12,10 @@ import { checkFraudCached, riskColor } from "@/lib/fraud-client";
 const PAGE_SIZE = 20;
 import { toast } from "sonner";
 import { ChevronDown, ChevronUp, Trash2, RotateCcw, Plus, X, Search } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/admin/orders")({
   component: Orders,
