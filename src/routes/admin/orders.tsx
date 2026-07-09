@@ -234,17 +234,17 @@ function Orders() {
           <div className="w-px h-5 bg-background/30" />
           {view === "active" ? (
             <>
-              <select onChange={(e) => { if (e.target.value) { bulkStatus(e.target.value); e.target.value = ""; } }} className="h-8 px-2 rounded bg-background text-foreground text-xs">
+              <select value="" onChange={(e) => { if (e.target.value) { setConfirmAction({ type: "status", status: e.target.value }); e.target.value = ""; } }} className="h-8 px-2 rounded bg-background text-foreground text-xs">
                 <option value="">স্ট্যাটাস পরিবর্তন...</option>
                 {STATUSES.map((s) => <option key={s} value={s}>{STATUS_LABELS[s]}</option>)}
               </select>
-              <button onClick={bulkSteadfast} disabled={sfBusy} className="h-8 px-3 rounded bg-emerald-500 text-white text-xs inline-flex items-center gap-1.5 disabled:opacity-60"><Truck className="h-3 w-3" /> Steadfast-এ পাঠান</button>
-              <button onClick={bulkTrash} className="h-8 px-3 rounded bg-background/10 hover:bg-background/20 text-xs inline-flex items-center gap-1.5"><Trash2 className="h-3 w-3" /> ট্র্যাশে পাঠান</button>
+              <button onClick={() => setConfirmAction({ type: "steadfast" })} disabled={sfBusy} className="h-8 px-3 rounded bg-emerald-500 text-white text-xs inline-flex items-center gap-1.5 disabled:opacity-60"><Truck className="h-3 w-3" /> Steadfast-এ পাঠান</button>
+              <button onClick={() => setConfirmAction({ type: "trash" })} className="h-8 px-3 rounded bg-background/10 hover:bg-background/20 text-xs inline-flex items-center gap-1.5"><Trash2 className="h-3 w-3" /> ট্র্যাশে পাঠান</button>
             </>
           ) : (
             <>
-              <button onClick={bulkRestore} className="h-8 px-3 rounded bg-background/10 hover:bg-background/20 text-xs inline-flex items-center gap-1.5"><RotateCcw className="h-3 w-3" /> পুনরুদ্ধার</button>
-              <button onClick={bulkDelete} className="h-8 px-3 rounded bg-destructive text-destructive-foreground text-xs inline-flex items-center gap-1.5"><Trash2 className="h-3 w-3" /> চিরতরে মুছুন</button>
+              <button onClick={() => setConfirmAction({ type: "restore" })} className="h-8 px-3 rounded bg-background/10 hover:bg-background/20 text-xs inline-flex items-center gap-1.5"><RotateCcw className="h-3 w-3" /> পুনরুদ্ধার</button>
+              <button onClick={() => setConfirmAction({ type: "delete" })} className="h-8 px-3 rounded bg-destructive text-destructive-foreground text-xs inline-flex items-center gap-1.5"><Trash2 className="h-3 w-3" /> চিরতরে মুছুন</button>
             </>
           )}
           <button onClick={() => setSelected(new Set())} className="ml-auto text-xs underline">বাতিল</button>
