@@ -1,0 +1,59 @@
+%% Medicare BD — End-to-End Testing Pipeline
+graph LR
+  Dev["👨‍💻 Developer<br/>pytest tests/e2e/"]:::dev
+
+  subgraph Runner["🎭 Playwright Runner"]
+    direction TB
+    Conftest["conftest.py<br/>fixtures · hooks"]:::runner
+    Tests["test_medicare.py<br/>20 scenarios"]:::runner
+    Browser["Chromium<br/>headless"]:::runner
+  end
+
+  subgraph Coverage["🧭 Coverage — Epic → Feature → Story"]
+    direction TB
+    F1["🏠 Home Page<br/>hero · nav · ticker"]:::feat
+    F2["🛍️ Product Catalog<br/>list · search · detail"]:::feat
+    F3["🛒 Cart & Checkout<br/>empty · flow"]:::feat
+    F4["🔐 Auth<br/>login · guard"]:::feat
+    F5["📄 Info Pages<br/>about · contact · policies · track"]:::feat
+    F6["🛡️ Admin<br/>role gate"]:::feat
+    F7["🔎 SEO<br/>meta · sitemap · robots"]:::feat
+    F8["📱 Responsive<br/>mobile · tablet"]:::feat
+  end
+
+  App["🌐 App under test<br/>localhost:8080"]:::app
+
+  subgraph Artifacts["📦 Test Artifacts"]
+    direction TB
+    Results["allure-results/<br/>JSON + attachments"]:::artifact
+    Shots["screenshots/pages/<br/>screenshots/allure/"]:::artifact
+  end
+
+  subgraph Reporting["📊 Allure Reporting"]
+    direction TB
+    Gen["allure generate<br/>--clean"]:::report
+    Report["allure-report/<br/>HTML dashboard"]:::report
+    Views["Overview · Suites · Graphs<br/>Timeline · Behaviors · Categories"]:::report
+  end
+
+  Verdict{{"✅ 20 passed<br/>~55s"}}:::pass
+
+  Dev --> Conftest
+  Conftest --> Tests
+  Tests --> Browser
+  Browser -->|drive UI| App
+  App -->|DOM · console · network| Browser
+  Tests --> F1 & F2 & F3 & F4 & F5 & F6 & F7 & F8
+  F1 & F2 & F3 & F4 & F5 & F6 & F7 & F8 --> Results
+  Browser --> Shots
+  Results --> Gen
+  Shots --> Gen
+  Gen --> Report --> Views --> Verdict
+
+  classDef dev fill:#fef3c7,stroke:#d97706,stroke-width:2px,color:#78350f
+  classDef runner fill:#ede9fe,stroke:#7c3aed,stroke-width:2px,color:#4c1d95
+  classDef feat fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+  classDef app fill:#dcfce7,stroke:#16a34a,stroke-width:2px,color:#14532d
+  classDef artifact fill:#ffedd5,stroke:#ea580c,stroke-width:2px,color:#7c2d12
+  classDef report fill:#fce7f3,stroke:#db2777,stroke-width:2px,color:#831843
+  classDef pass fill:#bbf7d0,stroke:#15803d,stroke-width:3px,color:#052e16

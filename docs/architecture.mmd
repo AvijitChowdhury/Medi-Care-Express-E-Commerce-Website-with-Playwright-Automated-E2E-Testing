@@ -1,47 +1,82 @@
+%% Medicare BD — Full System Architecture
 graph TB
-  subgraph Client["Browser (Client)"]
-    UI[React 19 UI<br/>shadcn/ui + Tailwind v4]
-    Router[TanStack Router<br/>File-based Routes]
-    Query[TanStack Query<br/>Cache & SWR]
-    Cart[Zustand Cart Store<br/>localStorage]
+  User((👤 Shopper)):::user
+  Admin((🛡️ Admin)):::admin
+
+  subgraph Client["🌐 Browser (Client)"]
+    direction TB
+    UI["React 19 UI<br/>shadcn/ui + Tailwind v4"]:::client
+    Router["TanStack Router<br/>File-based routes"]:::client
+    Query["TanStack Query<br/>Cache + SWR"]:::client
+    Cart["Zustand Cart<br/>localStorage"]:::client
+    Pixel["Facebook Pixel<br/>browser events"]:::client
   end
 
-  subgraph Edge["Edge Runtime (Cloudflare Workers)"]
-    SSR[TanStack Start SSR<br/>Vite 7 build]
-    ServerFns[Server Functions<br/>createServerFn]
-    APIRoutes[Public API Routes<br/>/api/public/*]
+  subgraph Edge["⚡ Edge Runtime — Cloudflare Workers"]
+    direction TB
+    SSR["TanStack Start SSR<br/>Vite 7 build"]:::edge
+    ServerFns["createServerFn<br/>Typed RPC"]:::edge
+    APIRoutes["Public API routes<br/>/api/public/*"]:::edge
+    Sitemap["sitemap.xml<br/>robots.txt"]:::edge
   end
 
-  subgraph Backend["Backend Services (Supabase)"]
-    Auth[Auth<br/>Email + OAuth]
-    DB[(PostgreSQL<br/>RLS Policies)]
-    Storage[Object Storage<br/>Product images]
+  subgraph Backend["🗄️ Supabase Backend"]
+    direction TB
+    Auth["Auth<br/>Email + Google OAuth"]:::backend
+    DB[("PostgreSQL<br/>Row-Level Security")]:::db
+    Storage["Object Storage<br/>Product images"]:::backend
+    RPC["SECURITY DEFINER<br/>has_role() · fraud RPC"]:::backend
   end
 
-  subgraph External["External Integrations"]
-    Uddokta[UddoktaPay<br/>bKash / Nagad / Rocket]
-    Steadfast[Steadfast Courier<br/>Delivery API]
-    FBP[Facebook Pixel + CAPI<br/>Ad tracking]
+  subgraph External["🔌 External Integrations"]
+    direction TB
+    Uddokta["💳 UddoktaPay<br/>bKash · Nagad · Rocket"]:::pay
+    Steadfast["📦 Steadfast Courier<br/>Delivery API"]:::ship
+    FBCAPI["📊 Facebook CAPI<br/>Server-side ads"]:::analytics
+    BDCourier["🛡️ BD Courier<br/>Fraud check"]:::analytics
   end
 
-  subgraph QA["Quality Assurance"]
-    PW[Playwright Python<br/>pytest-playwright]
-    Allure[Allure Reports<br/>HTML dashboards]
+  subgraph QA["🧪 Quality Assurance"]
+    direction TB
+    PW["Playwright · Python<br/>20 E2E scenarios"]:::qa
+    Allure["Allure Reports<br/>Epic → Feature → Story"]:::qa
   end
 
+  User -->|HTTPS| UI
+  Admin -->|"/admin (gated)"| UI
   UI --> Router --> Query
   UI --> Cart
-  Query --> ServerFns
+  UI --> Pixel
   Router --> SSR
+  Query -->|hydrate| SSR
   SSR --> ServerFns
-  ServerFns --> DB
+  Query -->|RPC| ServerFns
   ServerFns --> Auth
-  APIRoutes --> Uddokta
-  APIRoutes --> Steadfast
-  APIRoutes --> FBP
+  ServerFns --> DB
+  ServerFns --> Storage
+  ServerFns --> RPC
+  ServerFns --> BDCourier
   APIRoutes --> DB
-  Uddokta -.webhook.-> APIRoutes
-  Steadfast -.webhook.-> APIRoutes
+  Sitemap --> DB
 
-  PW -.tests.-> UI
+  UI -->|"Pay advance"| APIRoutes
+  APIRoutes -->|"/checkout-v2"| Uddokta
+  Uddokta -.callback.-> APIRoutes
+  APIRoutes -->|"Create consignment"| Steadfast
+  Steadfast -.status webhook.-> APIRoutes
+  Pixel -.dedupe.-> FBCAPI
+  APIRoutes --> FBCAPI
+
+  PW -.drives.-> UI
   PW --> Allure
+
+  classDef user fill:#fef3c7,stroke:#d97706,stroke-width:2px,color:#78350f
+  classDef admin fill:#fee2e2,stroke:#dc2626,stroke-width:2px,color:#7f1d1d
+  classDef client fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+  classDef edge fill:#ede9fe,stroke:#7c3aed,stroke-width:2px,color:#4c1d95
+  classDef backend fill:#dcfce7,stroke:#16a34a,stroke-width:2px,color:#14532d
+  classDef db fill:#bbf7d0,stroke:#15803d,stroke-width:3px,color:#052e16
+  classDef pay fill:#fce7f3,stroke:#db2777,stroke-width:2px,color:#831843
+  classDef ship fill:#ffedd5,stroke:#ea580c,stroke-width:2px,color:#7c2d12
+  classDef analytics fill:#cffafe,stroke:#0891b2,stroke-width:2px,color:#164e63
+  classDef qa fill:#fef9c3,stroke:#ca8a04,stroke-width:2px,color:#713f12
