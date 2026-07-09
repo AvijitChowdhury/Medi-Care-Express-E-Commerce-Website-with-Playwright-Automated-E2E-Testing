@@ -12,6 +12,10 @@ import { checkFraudCached, riskColor } from "@/lib/fraud-client";
 const PAGE_SIZE = 20;
 import { toast } from "sonner";
 import { ChevronDown, ChevronUp, Trash2, RotateCcw, Plus, X, Search } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/admin/orders")({
   component: Orders,
@@ -100,31 +104,33 @@ function Orders() {
     qc.invalidateQueries({ queryKey: ["admin"] });
   };
 
+  type ConfirmAction =
+    | { type: "trash" }
+    | { type: "restore" }
+    | { type: "delete" }
+    | { type: "status"; status: string }
+    | { type: "steadfast" };
+  const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null);
+
   const bulkTrash = async () => {
-    if (selected.size === 0) return;
-    if (!confirm(`${toBnDigits(selected.size)}টি অর্ডার ট্র্যাশে পাঠাবেন?`)) return;
     const { error } = await supabase.from("orders").update({ deleted_at: new Date().toISOString() }).in("id", Array.from(selected));
     if (error) { toast.error(error.message); return; }
     toast.success("ট্র্যাশে সরানো হয়েছে"); setSelected(new Set());
     qc.invalidateQueries({ queryKey: ["admin"] });
   };
   const bulkRestore = async () => {
-    if (selected.size === 0) return;
     const { error } = await supabase.from("orders").update({ deleted_at: null }).in("id", Array.from(selected));
     if (error) { toast.error(error.message); return; }
     toast.success("পুনরুদ্ধার হয়েছে"); setSelected(new Set());
     qc.invalidateQueries({ queryKey: ["admin"] });
   };
   const bulkDelete = async () => {
-    if (selected.size === 0) return;
-    if (!confirm(`${toBnDigits(selected.size)}টি অর্ডার চিরতরে মুছবেন?`)) return;
     const { error } = await supabase.from("orders").delete().in("id", Array.from(selected));
     if (error) { toast.error(error.message); return; }
     toast.success("মুছে ফেলা হয়েছে"); setSelected(new Set());
     qc.invalidateQueries({ queryKey: ["admin"] });
   };
   const bulkStatus = async (s: string) => {
-    if (selected.size === 0) return;
     const { error } = await supabase.from("orders").update({ status: s as any }).in("id", Array.from(selected));
     if (error) { toast.error(error.message); return; }
     toast.success("স্ট্যাটাস আপডেট হয়েছে"); setSelected(new Set());
@@ -142,8 +148,6 @@ function Orders() {
     } catch (e: any) { toast.error(e?.message || "ব্যর্থ"); } finally { setSfBusy(false); }
   };
   const bulkSteadfast = async () => {
-    if (selected.size === 0) return;
-    if (!confirm(`${toBnDigits(selected.size)}টি অর্ডার Steadfast-এ পাঠাবেন?`)) return;
     setSfBusy(true);
     try {
       const r: any = await sendBulk({ data: { order_ids: Array.from(selected) } });
@@ -152,6 +156,30 @@ function Orders() {
       qc.invalidateQueries({ queryKey: ["admin"] });
     } catch (e: any) { toast.error(e?.message || "ব্যর্থ"); } finally { setSfBusy(false); }
   };
+
+  const runConfirm = async () => {
+    if (!confirmAction || selected.size === 0) { setConfirmAction(null); return; }
+    const a = confirmAction;
+    setConfirmAction(null);
+    if (a.type === "trash") await bulkTrash();
+    else if (a.type === "restore") await bulkRestore();
+    else if (a.type === "delete") await bulkDelete();
+    else if (a.type === "status") await bulkStatus(a.status);
+    else if (a.type === "steadfast") await bulkSteadfast();
+  };
+
+  const confirmCopy = (a: ConfirmAction | null) => {
+    const n = toBnDigits(selected.size);
+    switch (a?.type) {
+      case "trash": return { title: "ট্র্যাশে পাঠাবেন?", desc: `${n}টি অর্ডার ট্র্যাশে সরানো হবে। পরে পুনরুদ্ধার করা যাবে।`, cta: "ট্র্যাশে পাঠান" };
+      case "restore": return { title: "পুনরুদ্ধার করবেন?", desc: `${n}টি অর্ডার সক্রিয় তালিকায় ফিরিয়ে আনা হবে।`, cta: "পুনরুদ্ধার" };
+      case "delete": return { title: "চিরতরে মুছবেন?", desc: `${n}টি অর্ডার স্থায়ীভাবে মুছে যাবে। এই অ্যাকশন ফিরিয়ে আনা যাবে না।`, cta: "মুছে ফেলুন" };
+      case "status": return { title: "স্ট্যাটাস পরিবর্তন করবেন?", desc: `${n}টি অর্ডারের স্ট্যাটাস "${STATUS_LABELS[a.status] ?? a.status}"-এ পরিবর্তন হবে।`, cta: "নিশ্চিত করুন" };
+      case "steadfast": return { title: "Steadfast-এ পাঠাবেন?", desc: `${n}টি অর্ডার Steadfast কুরিয়ারে পাঠানো হবে।`, cta: "পাঠান" };
+      default: return { title: "", desc: "", cta: "নিশ্চিত করুন" };
+    }
+  };
+  const cc = confirmCopy(confirmAction);
   const runSync = async () => {
     setSfBusy(true);
     try {
@@ -206,17 +234,17 @@ function Orders() {
           <div className="w-px h-5 bg-background/30" />
           {view === "active" ? (
             <>
-              <select onChange={(e) => { if (e.target.value) { bulkStatus(e.target.value); e.target.value = ""; } }} className="h-8 px-2 rounded bg-background text-foreground text-xs">
+              <select value="" onChange={(e) => { if (e.target.value) { setConfirmAction({ type: "status", status: e.target.value }); e.target.value = ""; } }} className="h-8 px-2 rounded bg-background text-foreground text-xs">
                 <option value="">স্ট্যাটাস পরিবর্তন...</option>
                 {STATUSES.map((s) => <option key={s} value={s}>{STATUS_LABELS[s]}</option>)}
               </select>
-              <button onClick={bulkSteadfast} disabled={sfBusy} className="h-8 px-3 rounded bg-emerald-500 text-white text-xs inline-flex items-center gap-1.5 disabled:opacity-60"><Truck className="h-3 w-3" /> Steadfast-এ পাঠান</button>
-              <button onClick={bulkTrash} className="h-8 px-3 rounded bg-background/10 hover:bg-background/20 text-xs inline-flex items-center gap-1.5"><Trash2 className="h-3 w-3" /> ট্র্যাশে পাঠান</button>
+              <button onClick={() => setConfirmAction({ type: "steadfast" })} disabled={sfBusy} className="h-8 px-3 rounded bg-emerald-500 text-white text-xs inline-flex items-center gap-1.5 disabled:opacity-60"><Truck className="h-3 w-3" /> Steadfast-এ পাঠান</button>
+              <button onClick={() => setConfirmAction({ type: "trash" })} className="h-8 px-3 rounded bg-background/10 hover:bg-background/20 text-xs inline-flex items-center gap-1.5"><Trash2 className="h-3 w-3" /> ট্র্যাশে পাঠান</button>
             </>
           ) : (
             <>
-              <button onClick={bulkRestore} className="h-8 px-3 rounded bg-background/10 hover:bg-background/20 text-xs inline-flex items-center gap-1.5"><RotateCcw className="h-3 w-3" /> পুনরুদ্ধার</button>
-              <button onClick={bulkDelete} className="h-8 px-3 rounded bg-destructive text-destructive-foreground text-xs inline-flex items-center gap-1.5"><Trash2 className="h-3 w-3" /> চিরতরে মুছুন</button>
+              <button onClick={() => setConfirmAction({ type: "restore" })} className="h-8 px-3 rounded bg-background/10 hover:bg-background/20 text-xs inline-flex items-center gap-1.5"><RotateCcw className="h-3 w-3" /> পুনরুদ্ধার</button>
+              <button onClick={() => setConfirmAction({ type: "delete" })} className="h-8 px-3 rounded bg-destructive text-destructive-foreground text-xs inline-flex items-center gap-1.5"><Trash2 className="h-3 w-3" /> চিরতরে মুছুন</button>
             </>
           )}
           <button onClick={() => setSelected(new Set())} className="ml-auto text-xs underline">বাতিল</button>
@@ -350,6 +378,24 @@ function Orders() {
       </div>
 
       {showManual && <ManualOrderModal onClose={() => setShowManual(false)} onSaved={() => qc.invalidateQueries({ queryKey: ["admin"] })} />}
+
+      <AlertDialog open={!!confirmAction} onOpenChange={(o) => !o && setConfirmAction(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{cc.title}</AlertDialogTitle>
+            <AlertDialogDescription>{cc.desc}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>বাতিল</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={runConfirm}
+              className={confirmAction?.type === "delete" ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" : ""}
+            >
+              {cc.cta}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
