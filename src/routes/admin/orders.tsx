@@ -148,8 +148,6 @@ function Orders() {
     } catch (e: any) { toast.error(e?.message || "ব্যর্থ"); } finally { setSfBusy(false); }
   };
   const bulkSteadfast = async () => {
-    if (selected.size === 0) return;
-    if (!confirm(`${toBnDigits(selected.size)}টি অর্ডার Steadfast-এ পাঠাবেন?`)) return;
     setSfBusy(true);
     try {
       const r: any = await sendBulk({ data: { order_ids: Array.from(selected) } });
@@ -158,6 +156,30 @@ function Orders() {
       qc.invalidateQueries({ queryKey: ["admin"] });
     } catch (e: any) { toast.error(e?.message || "ব্যর্থ"); } finally { setSfBusy(false); }
   };
+
+  const runConfirm = async () => {
+    if (!confirmAction || selected.size === 0) { setConfirmAction(null); return; }
+    const a = confirmAction;
+    setConfirmAction(null);
+    if (a.type === "trash") await bulkTrash();
+    else if (a.type === "restore") await bulkRestore();
+    else if (a.type === "delete") await bulkDelete();
+    else if (a.type === "status") await bulkStatus(a.status);
+    else if (a.type === "steadfast") await bulkSteadfast();
+  };
+
+  const confirmCopy = (a: ConfirmAction | null) => {
+    const n = toBnDigits(selected.size);
+    switch (a?.type) {
+      case "trash": return { title: "ট্র্যাশে পাঠাবেন?", desc: `${n}টি অর্ডার ট্র্যাশে সরানো হবে। পরে পুনরুদ্ধার করা যাবে।`, cta: "ট্র্যাশে পাঠান" };
+      case "restore": return { title: "পুনরুদ্ধার করবেন?", desc: `${n}টি অর্ডার সক্রিয় তালিকায় ফিরিয়ে আনা হবে।`, cta: "পুনরুদ্ধার" };
+      case "delete": return { title: "চিরতরে মুছবেন?", desc: `${n}টি অর্ডার স্থায়ীভাবে মুছে যাবে। এই অ্যাকশন ফিরিয়ে আনা যাবে না।`, cta: "মুছে ফেলুন" };
+      case "status": return { title: "স্ট্যাটাস পরিবর্তন করবেন?", desc: `${n}টি অর্ডারের স্ট্যাটাস "${STATUS_LABELS[a.status] ?? a.status}"-এ পরিবর্তন হবে।`, cta: "নিশ্চিত করুন" };
+      case "steadfast": return { title: "Steadfast-এ পাঠাবেন?", desc: `${n}টি অর্ডার Steadfast কুরিয়ারে পাঠানো হবে।`, cta: "পাঠান" };
+      default: return { title: "", desc: "", cta: "নিশ্চিত করুন" };
+    }
+  };
+  const cc = confirmCopy(confirmAction);
   const runSync = async () => {
     setSfBusy(true);
     try {
