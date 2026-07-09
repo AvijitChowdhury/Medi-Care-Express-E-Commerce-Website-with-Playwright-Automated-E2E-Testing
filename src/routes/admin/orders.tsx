@@ -104,31 +104,33 @@ function Orders() {
     qc.invalidateQueries({ queryKey: ["admin"] });
   };
 
+  type ConfirmAction =
+    | { type: "trash" }
+    | { type: "restore" }
+    | { type: "delete" }
+    | { type: "status"; status: string }
+    | { type: "steadfast" };
+  const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null);
+
   const bulkTrash = async () => {
-    if (selected.size === 0) return;
-    if (!confirm(`${toBnDigits(selected.size)}টি অর্ডার ট্র্যাশে পাঠাবেন?`)) return;
     const { error } = await supabase.from("orders").update({ deleted_at: new Date().toISOString() }).in("id", Array.from(selected));
     if (error) { toast.error(error.message); return; }
     toast.success("ট্র্যাশে সরানো হয়েছে"); setSelected(new Set());
     qc.invalidateQueries({ queryKey: ["admin"] });
   };
   const bulkRestore = async () => {
-    if (selected.size === 0) return;
     const { error } = await supabase.from("orders").update({ deleted_at: null }).in("id", Array.from(selected));
     if (error) { toast.error(error.message); return; }
     toast.success("পুনরুদ্ধার হয়েছে"); setSelected(new Set());
     qc.invalidateQueries({ queryKey: ["admin"] });
   };
   const bulkDelete = async () => {
-    if (selected.size === 0) return;
-    if (!confirm(`${toBnDigits(selected.size)}টি অর্ডার চিরতরে মুছবেন?`)) return;
     const { error } = await supabase.from("orders").delete().in("id", Array.from(selected));
     if (error) { toast.error(error.message); return; }
     toast.success("মুছে ফেলা হয়েছে"); setSelected(new Set());
     qc.invalidateQueries({ queryKey: ["admin"] });
   };
   const bulkStatus = async (s: string) => {
-    if (selected.size === 0) return;
     const { error } = await supabase.from("orders").update({ status: s as any }).in("id", Array.from(selected));
     if (error) { toast.error(error.message); return; }
     toast.success("স্ট্যাটাস আপডেট হয়েছে"); setSelected(new Set());
