@@ -378,6 +378,24 @@ function Orders() {
       </div>
 
       {showManual && <ManualOrderModal onClose={() => setShowManual(false)} onSaved={() => qc.invalidateQueries({ queryKey: ["admin"] })} />}
+
+      <AlertDialog open={!!confirmAction} onOpenChange={(o) => !o && setConfirmAction(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{cc.title}</AlertDialogTitle>
+            <AlertDialogDescription>{cc.desc}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>বাতিল</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={runConfirm}
+              className={confirmAction?.type === "delete" ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" : ""}
+            >
+              {cc.cta}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
