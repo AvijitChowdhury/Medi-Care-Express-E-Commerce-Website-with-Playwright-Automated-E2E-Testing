@@ -1,0 +1,38 @@
+%% Medicare BD — Payment & Order Lifecycle
+sequenceDiagram
+  autonumber
+  actor U as 👤 Shopper
+  participant C as 🖥️ Checkout UI
+  participant S as ⚡ Server Function
+  participant DB as 🗄️ Supabase
+  participant P as 💳 UddoktaPay
+  participant CB as 🔁 Callback Route
+  participant SF as 📦 Steadfast
+
+  U->>C: Fill address · pick payment
+  C->>S: createServerFn createOrder(cart, address)
+  S->>DB: INSERT orders + order_items (RLS-scoped)
+  DB-->>S: order_id
+  alt COD
+    S-->>C: order_id · status=pending
+    C->>U: Redirect /order/{id}
+  else Partial online (advance)
+    S->>P: POST /checkout-v2 (amount = delivery fee)
+    P-->>S: payment_url · invoice_id
+    S->>DB: UPDATE orders SET uddoktapay_invoice_id
+    S-->>C: payment_url
+    C->>U: Open UddoktaPay tab
+    U->>P: bKash / Nagad / Rocket payment
+    P->>CB: Redirect /api/public/uddoktapay/callback?invoice_id
+    CB->>P: GET /verify-payment
+    P-->>CB: paid=true · txn_id · sender_number
+    CB->>DB: UPDATE orders paid_amount · payment_status=paid
+    CB-->>U: Redirect /order/{id}?paid=1
+    C->>C: Poll order until payment_status=paid
+    C->>U: Show "পেমেন্ট সম্পন্ন" · invoice PDF
+  end
+  Note over S,SF: Admin ships from /admin/orders
+  S->>SF: Create consignment
+  SF-->>S: tracking_code
+  SF-->>CB: Status webhook (in_review / delivered / cancelled)
+  CB->>DB: UPDATE orders.status
